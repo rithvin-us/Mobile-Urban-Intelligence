@@ -2,161 +2,194 @@ import random
 from typing import List, Dict, Any, Tuple
 from simulator.gps.interpolator import get_position_along_road_path
 
-# High-density road polyline definitions for Coimbatore arterial corridors.
+# High-density road polyline definitions for the 50 km radius Coimbatore regional transport network.
 # Every point lies strictly on real Google Maps street geometries.
 ROUTES: Dict[str, List[Tuple[float, float]]] = {
-    "21A": [  # Gandhipuram - Avinashi Road - Airport (NH 544)
+    "101": [  # Mettupalayam - Nilgiri Foothills Express (NH 181) ~45 km North
         (11.0183, 76.9725),
-        (11.0160, 76.9735),
-        (11.0135, 76.9762),
+        (11.0290, 76.9550),
+        (11.0450, 76.9460),
+        (11.0780, 76.9380),
+        (11.1550, 76.9350),
+        (11.2420, 76.9580),
+        (11.3000, 76.9500),
+        (11.3450, 76.9280),
+        # Loop return
+        (11.3000, 76.9500),
+        (11.2420, 76.9580),
+        (11.1550, 76.9350),
+        (11.0780, 76.9380),
+        (11.0450, 76.9460),
+        (11.0290, 76.9550),
+        (11.0183, 76.9725),
+    ],
+    "202": [  # Tiruppur - Avinashi Regional Highway (NH 544) ~50 km East-Northeast
+        (11.0183, 76.9725),
+        (11.0300, 77.0320),
+        (11.0650, 77.0850),
+        (11.1080, 77.1750),
+        (11.1920, 77.2680),
+        (11.1085, 77.3411),
+        # Loop return
+        (11.1920, 77.2680),
+        (11.1080, 77.1750),
+        (11.0650, 77.0850),
+        (11.0300, 77.0320),
+        (11.0183, 76.9725),
+    ],
+    "303": [  # Kinathukadavu - Pollachi Trunk Corridor (NH 83) ~45 km South
+        (10.9885, 76.9585),
+        (10.9230, 76.9680),
+        (10.8800, 76.9750),
+        (10.8210, 76.9850),
+        (10.7020, 77.0080),
+        (10.6580, 77.0050),
+        # Loop return
+        (10.7020, 77.0080),
+        (10.8210, 76.9850),
+        (10.8800, 76.9750),
+        (10.9230, 76.9680),
+        (10.9885, 76.9585),
+    ],
+    "404": [  # Saravanampatti - Annur - Sirumugai Line (SH 165) ~40 km North-East
+        (11.0183, 76.9725),
+        (11.0380, 76.9780),
+        (11.0820, 76.9950),
+        (11.1650, 77.0420),
+        (11.2320, 77.1050),
+        (11.3250, 77.0050),
+        # Loop return
+        (11.2320, 77.1050),
+        (11.1650, 77.0420),
+        (11.0820, 76.9950),
+        (11.0380, 76.9780),
+        (11.0183, 76.9725),
+    ],
+    "505": [  # Walayar - Palakkad Interstate Transit (NH 544 West) ~45 km South-West
+        (10.9885, 76.9585),
+        (10.9580, 76.9500),
+        (10.9150, 76.9120),
+        (10.8750, 76.8580),
+        (10.8420, 76.8200),
+        (10.8050, 76.7550),
+        # Loop return
+        (10.8420, 76.8200),
+        (10.8750, 76.8580),
+        (10.9150, 76.9120),
+        (10.9580, 76.9500),
+        (10.9885, 76.9585),
+    ],
+    "606": [  # Sulur Airbase - Palladam Belt (NH 81) ~42 km East-South-East
+        (11.0015, 77.0285),
+        (11.0030, 77.0520),
+        (11.0250, 77.1250),
+        (11.0150, 77.2100),
+        (10.9980, 77.2850),
+        # Loop return
+        (11.0150, 77.2100),
+        (11.0250, 77.1250),
+        (11.0030, 77.0520),
+        (11.0015, 77.0285),
+    ],
+    "14C": [  # Town Hall - R.S. Puram - Marudhamalai Foothills ~15 km West
+        (10.9885, 76.9585),
+        (10.9978, 76.9617),
+        (11.0055, 76.9515),
+        (11.0180, 76.9200),
+        (11.0310, 76.8900),
+        (11.0450, 76.8520),
+        # Loop return
+        (11.0310, 76.8900),
+        (11.0180, 76.9200),
+        (11.0055, 76.9515),
+        (10.9978, 76.9617),
+        (10.9885, 76.9585),
+    ],
+    "21A": [  # Gandhipuram - Avinashi Road - Airport - KMCH
+        (11.0183, 76.9725),
         (11.0134, 76.9865),
-        (11.0150, 76.9920),
         (11.0170, 76.9975),
-        (11.0210, 77.0020),
         (11.0270, 77.0080),
         (11.0290, 77.0160),
         (11.0303, 77.0230),
-        (11.0300, 77.0320),
-        (11.0295, 77.0410),
+        (11.0450, 77.0550),
         # Loop return
-        (11.0300, 77.0320),
         (11.0303, 77.0230),
         (11.0290, 77.0160),
         (11.0270, 77.0080),
-        (11.0210, 77.0020),
         (11.0170, 76.9975),
-        (11.0150, 76.9920),
         (11.0134, 76.9865),
-        (11.0135, 76.9762),
-        (11.0160, 76.9735),
         (11.0183, 76.9725),
     ],
-    "14C": [  # Ukkadam - Town Hall - R.S. Puram - Saibaba Colony
-        (10.9885, 76.9585),
-        (10.9935, 76.9605),
-        (10.9978, 76.9617),
-        (11.0005, 76.9580),
-        (11.0035, 76.9540),
-        (11.0055, 76.9515),
-        (11.0075, 76.9497),
-        (11.0140, 76.9480),
-        (11.0200, 76.9470),
-        (11.0250, 76.9550),
-        # Loop return
-        (11.0200, 76.9470),
-        (11.0140, 76.9480),
-        (11.0075, 76.9497),
-        (11.0055, 76.9515),
-        (11.0035, 76.9540),
-        (11.0005, 76.9580),
-        (10.9978, 76.9617),
-        (10.9935, 76.9605),
-        (10.9885, 76.9585),
-    ],
-    "70": [  # 100 Feet Road Ring - Gandhipuram - Ramanathapuram - Sungam
+    "70": [  # Coimbatore Ring Corridor - Ganapathy - Ramanathapuram
         (11.0183, 76.9725),
         (11.0160, 76.9680),
-        (11.0112, 76.9773),
-        (11.0050, 76.9820),
+        (11.0290, 76.9550),
+        (11.0380, 76.9780),
         (11.0002, 76.9885),
         (10.9950, 76.9820),
-        (10.9905, 76.9750),
-        (10.9930, 76.9680),
-        (10.9978, 76.9617),
-        (11.0080, 76.9670),
+        (10.9885, 76.9585),
         (11.0183, 76.9725),
     ],
-    "3B": [  # Mettupalayam Road (NH 181) - Gandhipuram to Thudiyalur
-        (11.0183, 76.9725),
-        (11.0210, 76.9640),
-        (11.0230, 76.9585),
-        (11.0290, 76.9550),
-        (11.0355, 76.9520),
-        (11.0450, 76.9460),
-        (11.0530, 76.9430),
-        (11.0595, 76.9410),
-        # Loop return
-        (11.0530, 76.9430),
-        (11.0450, 76.9460),
-        (11.0355, 76.9520),
-        (11.0290, 76.9550),
-        (11.0230, 76.9585),
-        (11.0210, 76.9640),
-        (11.0183, 76.9725),
-    ],
-    "45": [  # Trichy Road (NH 83) - Singanallur - Sungam - Town Hall
+    "45": [  # Trichy Road Expressway - Singanallur - Town Hall
         (11.0015, 77.0285),
         (11.0010, 77.0120),
-        (11.0005, 77.0000),
         (11.0000, 76.9885),
         (10.9950, 76.9810),
-        (10.9905, 76.9755),
-        (10.9935, 76.9680),
         (10.9978, 76.9617),
         # Loop return
-        (10.9935, 76.9680),
-        (10.9905, 76.9755),
         (10.9950, 76.9810),
         (11.0000, 76.9885),
-        (11.0005, 77.0000),
         (11.0010, 77.0120),
         (11.0015, 77.0285),
-    ],
-    "S7": [  # Palakkad Road (NH 544) - Kuniyamuthur - Ukkadam - Gandhipuram
-        (10.9525, 76.9470),
-        (10.9580, 76.9500),
-        (10.9635, 76.9540),
-        (10.9720, 76.9555),
-        (10.9780, 76.9565),
-        (10.9885, 76.9585),
-        (10.9935, 76.9605),
-        (10.9978, 76.9617),
-        (11.0080, 76.9670),
-        (11.0183, 76.9725),
-        # Loop return
-        (11.0080, 76.9670),
-        (10.9978, 76.9617),
-        (10.9935, 76.9605),
-        (10.9885, 76.9585),
-        (10.9780, 76.9565),
-        (10.9720, 76.9555),
-        (10.9635, 76.9540),
-        (10.9580, 76.9500),
-        (10.9525, 76.9470),
     ],
 }
 
-# Fixed road faults along the street coordinates
+# Fixed road faults along regional highway coordinates
 ROUTE_HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
-    "21A": [
-        {"lat": 11.0134, "lon": 76.9865, "type": "POTHOLE", "severity": "HIGH"},
-        {"lat": 11.0270, "lon": 77.0080, "type": "TRAFFIC", "severity": "MEDIUM"},
-        {"lat": 11.0303, "lon": 77.0230, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+    "101": [
+        {"lat": 11.2420, "lon": 76.9580, "type": "ROAD_DAMAGE", "severity": "HIGH"},
+        {"lat": 11.3000, "lon": 76.9500, "type": "POTHOLE", "severity": "CRITICAL"},
+    ],
+    "202": [
+        {"lat": 11.1080, "lon": 77.1750, "type": "TRAFFIC", "severity": "HIGH"},
+        {"lat": 11.1920, "lon": 77.2680, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+    ],
+    "303": [
+        {"lat": 10.8210, "lon": 76.9850, "type": "ROAD_DAMAGE", "severity": "MEDIUM"},
+        {"lat": 10.6580, "lon": 77.0050, "type": "POTHOLE", "severity": "HIGH"},
+    ],
+    "404": [
+        {"lat": 11.0820, "lon": 76.9950, "type": "TRAFFIC", "severity": "HIGH"},
+        {"lat": 11.2320, "lon": 77.1050, "type": "WATERLOGGING", "severity": "MEDIUM"},
+    ],
+    "505": [
+        {"lat": 10.8750, "lon": 76.8580, "type": "TRAFFIC", "severity": "HIGH"},
+        {"lat": 10.8420, "lon": 76.8200, "type": "POTHOLE", "severity": "CRITICAL"},
+    ],
+    "606": [
+        {"lat": 11.0250, "lon": 77.1250, "type": "PEDESTRIAN_RISK", "severity": "MEDIUM"},
+        {"lat": 10.9980, "lon": 77.2850, "type": "POTHOLE", "severity": "HIGH"},
     ],
     "14C": [
-        {"lat": 11.0035, "lon": 76.9540, "type": "WATERLOGGING", "severity": "HIGH"},
-        {"lat": 11.0200, "lon": 76.9470, "type": "ROAD_DAMAGE", "severity": "MEDIUM"},
+        {"lat": 11.0450, "lon": 76.8520, "type": "WATERLOGGING", "severity": "HIGH"},
+        {"lat": 11.0055, "lon": 76.9515, "type": "POTHOLE", "severity": "MEDIUM"},
+    ],
+    "21A": [
+        {"lat": 11.0134, "lon": 76.9865, "type": "POTHOLE", "severity": "HIGH"},
+        {"lat": 11.0303, "lon": 77.0230, "type": "TRAFFIC", "severity": "MEDIUM"},
     ],
     "70": [
-        {"lat": 11.0112, "lon": 76.9773, "type": "TRAFFIC", "severity": "HIGH"},
-        {"lat": 11.0002, "lon": 76.9885, "type": "POTHOLE", "severity": "CRITICAL"},
-        {"lat": 10.9905, "lon": 76.9750, "type": "TRAFFIC_SIGN", "severity": "LOW"},
-    ],
-    "3B": [
-        {"lat": 11.0355, "lon": 76.9520, "type": "ROAD_DAMAGE", "severity": "HIGH"},
-        {"lat": 11.0230, "lon": 76.9585, "type": "PEDESTRIAN_RISK", "severity": "MEDIUM"},
+        {"lat": 11.0160, "lon": 76.9680, "type": "POTHOLE", "severity": "CRITICAL"},
+        {"lat": 11.0380, "lon": 76.9780, "type": "TRAFFIC", "severity": "HIGH"},
     ],
     "45": [
-        {"lat": 11.0000, "lon": 76.9885, "type": "POTHOLE", "severity": "MEDIUM"},
-        {"lat": 10.9905, "lon": 76.9755, "type": "WATERLOGGING", "severity": "MEDIUM"},
-    ],
-    "S7": [
-        {"lat": 10.9885, "lon": 76.9585, "type": "TRAFFIC", "severity": "HIGH"},
-        {"lat": 10.9635, "lon": 76.9540, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+        {"lat": 11.0015, "lon": 77.0285, "type": "WATERLOGGING", "severity": "MEDIUM"},
+        {"lat": 10.9978, "lon": 76.9617, "type": "ZEBRA_CROSSING", "severity": "LOW"},
     ],
 }
 
-HOTSPOT_RADIUS_DEG = 0.0012  # roughly 130 m
+HOTSPOT_RADIUS_DEG = 0.0015  # roughly 160 m
 
 class SimulatedBus:
     def __init__(self, bus_id: str, bus_number: str, route_name: str, route_waypoints: List[tuple]):
@@ -164,12 +197,15 @@ class SimulatedBus:
         self.bus_number = bus_number
         self.route_name = route_name
         self.waypoints = route_waypoints
-        # Initial distance offset along path
-        self.distance_traveled = random.uniform(0.0, 5000.0)
-        self.speed = random.uniform(22.0, 45.0)  # km/h
+        self.speed = random.uniform(28.0, 58.0)  # km/h
         self.status = "ACTIVE"
         self.dwell_steps = 0          # stopped at bus stop
         self.signal_lost_steps = 0    # telemetry link down
+
+        # Compute total route length to scatter buses evenly across the entire corridor length
+        _, _, _, total_length = get_position_along_road_path(self.waypoints, 0.0)
+        max_dist = max(1000.0, total_length)
+        self.distance_traveled = random.uniform(0.0, max_dist)
 
         # Set initial snapped position on road
         self.lat, self.lon, self.heading, _ = get_position_along_road_path(
@@ -191,8 +227,8 @@ class SimulatedBus:
             self.dwell_steps -= 1
             self.speed = 0.0
             return True
-        if random.random() < 0.05:
-            self.dwell_steps = random.randint(2, 6)
+        if random.random() < 0.04:
+            self.dwell_steps = random.randint(2, 5)
             self.speed = 0.0
             return True
         return False
@@ -206,7 +242,7 @@ class SimulatedBus:
             return
 
         # Speed variation in km/h -> convert to meters per second
-        self.speed = max(10.0, min(55.0, self.speed + random.uniform(-3.0, 3.0)))
+        self.speed = max(15.0, min(65.0, self.speed + random.uniform(-4.0, 4.0)))
         speed_m_per_s = (self.speed * 1000.0) / 3600.0
         
         # Advance distance strictly along the road polyline
