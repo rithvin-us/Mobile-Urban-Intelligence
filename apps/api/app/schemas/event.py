@@ -21,6 +21,8 @@ class EventSeverity(str, Enum):
 
 class EventStatus(str, Enum):
     NEW = "NEW"
+    ACKNOWLEDGED = "ACKNOWLEDGED"
+    INVESTIGATING = "INVESTIGATING"
     IN_PROGRESS = "IN_PROGRESS"
     RESOLVED = "RESOLVED"
 
@@ -35,6 +37,10 @@ class EventBase(BaseModel):
     evidence_url: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default=None, alias="metadata_payload")
 
+    # Accept either "metadata" or "metadata_payload" on input so producers
+    # (simulator today, Jetson devices later) can post the natural key.
+    model_config = ConfigDict(populate_by_name=True)
+
 class EventCreate(EventBase):
     id: Optional[str] = None
     timestamp: Optional[datetime] = None
@@ -45,3 +51,5 @@ class EventResponse(EventBase):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
+class EventStatusUpdate(BaseModel):
+    status: EventStatus

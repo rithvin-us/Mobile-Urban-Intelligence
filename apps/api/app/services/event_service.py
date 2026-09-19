@@ -43,3 +43,13 @@ def create_event(db: Session, event_in: EventCreate) -> Event:
     db.commit()
     db.refresh(db_event)
     return db_event
+
+def update_event_status(db: Session, event_id: str, new_status: str) -> Optional[Event]:
+    """Applies an operator decision (acknowledge / investigate / resolve) to an event."""
+    event = get_event_by_id(db, event_id)
+    if not event:
+        return None
+    event.status = new_status.value if hasattr(new_status, "value") else str(new_status)
+    db.commit()
+    db.refresh(event)
+    return event
