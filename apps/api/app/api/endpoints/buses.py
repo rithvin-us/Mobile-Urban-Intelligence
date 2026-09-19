@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.db.seed import seed_regional_fleet
 from app.schemas.bus import BusResponse, BusTelemetryUpdate
 from app.services import bus_service
 from app.services.redis_service import RedisService
@@ -55,7 +56,7 @@ def update_bus_telemetry_batch(telemetry_batch: List[BusTelemetryUpdate], db: Se
         bus = bus_service.update_or_create_telemetry(db, item)
         RedisService.update_bus_geo(bus.id, bus.longitude, bus.latitude)
         updated_buses.append(bus)
-from app.db.seed import seed_regional_fleet
+    return updated_buses
 
 @router.post("/reset-fleet", response_model=List[BusResponse], status_code=status.HTTP_200_OK)
 def reset_fleet_distribution(db: Session = Depends(get_db)):
