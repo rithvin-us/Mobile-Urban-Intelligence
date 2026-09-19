@@ -27,6 +27,7 @@ import {
   headingFrame,
   type SpriteVariant,
 } from '@/lib/bus_sprites';
+import { getSnappedRoutePath, snapCoordinateToPolyline } from '@/lib/road_snapper';
 
 export interface MapHandle {
   panTo: (lat: number, lng: number, zoom?: number) => void;
@@ -258,15 +259,20 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
 
     if (radarRef.current) return;
 
+    const TRANSPARENT_TILE =
+      'data:image/png;base64,iVBORw50KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
     const overlay = new maps.ImageMapType({
       name: 'Precipitation',
       tileSize: new maps.Size(256, 256),
-      maxZoom: 14,
+      minZoom: 1,
+      maxZoom: 12,
       opacity: 0.55,
       getTileUrl: (coord: google.maps.Point, zoom: number) => {
+        if (zoom < 1 || zoom > 12) return TRANSPARENT_TILE;
         const scale = 1 << zoom;
         const x = ((coord.x % scale) + scale) % scale;
-        if (coord.y < 0 || coord.y >= scale) return null as unknown as string;
+        if (coord.y < 0 || coord.y >= scale) return TRANSPARENT_TILE;
         return radarTemplate
           .replace('{z}', String(zoom))
           .replace('{x}', String(x))
@@ -299,6 +305,12 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
           clickable: false,
         });
         routeLines.current.set(route.id, line);
+
+        getSnappedRoutePath(route).then((snappedPath) => {
+          if (line && snappedPath && snappedPath.length > 0) {
+            line.setPath(snappedPath);
+          }
+        });
       }
 
       const highlighted = route.id === activeRouteId;
@@ -465,6 +477,18 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
             curLat = state.targetLat;
             curLng = state.targetLng;
             curHeading = state.targetHeading;
+          }
+        }
+
+        // STRICT ROAD SNAP CONSTRAINT:
+        // Guarantee 100% position & heading alignment strictly to real street centerlines.
+        const routeDef = getRoute(bus.route_name);
+        if (routeDef && routeDef.path && routeDef.path.length >= 2) {
+          const snapped = snapCoordinateToPolyline(curLat, curLng, routeDef.path);
+          curLat = snapped.lat;
+          curLng = snapped.lng;
+          if (snapped.heading >= 0) {
+            curHeading = snapped.heading;
           }
         }
 

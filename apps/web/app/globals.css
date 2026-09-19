@@ -125,3 +125,10 @@ body {
 .pulse-dot {
   animation: pulse-dot 2.4s ease-in-out infinite;
 }
+
+/* Suppress Google Maps tile error overlays ("Zoom Level Not Supported") */
+.gm-err-container,
+.gm-err-content,
+.gm-err-icon {
+  display: none !important;
+}
