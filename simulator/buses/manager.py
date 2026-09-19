@@ -218,10 +218,6 @@ ROUTES: Dict[str, List[Tuple[float, float]]] = {
         (10.9552, 76.9485),
         (10.9525, 76.9470),
     ],
-}
-        (10.9885, 76.9585),
-        (11.0183, 76.9725),
-    ],
     "45": [  # Trichy Road Expressway - Singanallur - Town Hall
         (11.0015, 77.0285),
         (11.0010, 77.0120),
