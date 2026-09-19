@@ -8,7 +8,7 @@ import type {
 import { ageSeconds, parseApiTime } from '@/lib/format';
 
 /** A bus that has not reported within this window is treated as offline. */
-export const OFFLINE_AFTER_SECONDS = 30;
+export const OFFLINE_AFTER_SECONDS = 120;
 /** Below this speed a reporting bus is standing at a halt or in a jam. */
 export const IDLE_SPEED_KMPH = 5;
 

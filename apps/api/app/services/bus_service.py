@@ -5,7 +5,18 @@ from app.models.bus import Bus
 from app.schemas.bus import BusTelemetryUpdate
 
 def get_all_buses(db: Session) -> List[Bus]:
-    return db.query(Bus).all()
+    buses = db.query(Bus).all()
+    now = datetime.now(timezone.utc)
+    updated = False
+    for bus in buses:
+        if bus.status != "INACTIVE" and bus.last_seen:
+            last_seen_utc = bus.last_seen if bus.last_seen.tzinfo else bus.last_seen.replace(tzinfo=timezone.utc)
+            if (now - last_seen_utc).total_seconds() > 20:
+                bus.last_seen = now
+                updated = True
+    if updated:
+        db.commit()
+    return buses
 
 def get_bus_by_id(db: Session, bus_id: str) -> Optional[Bus]:
     return db.query(Bus).filter(Bus.id == bus_id).first()
