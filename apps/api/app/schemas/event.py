@@ -48,6 +48,8 @@ class EventCreate(EventBase):
 class EventResponse(EventBase):
     id: str
     timestamp: datetime
+    acknowledged_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

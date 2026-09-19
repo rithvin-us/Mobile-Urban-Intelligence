@@ -12,6 +12,9 @@ export interface Bus {
   last_seen: string;
 }
 
+/** Operational state shown in the fleet panel, derived from telemetry freshness. */
+export type FleetState = 'ACTIVE' | 'IDLE' | 'OFFLINE';
+
 export type EventType =
   | 'POTHOLE'
   | 'ROAD_DAMAGE'
@@ -24,7 +27,12 @@ export type EventType =
 
 export type EventSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type EventStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED';
+export type EventStatus =
+  | 'NEW'
+  | 'ACKNOWLEDGED'
+  | 'INVESTIGATING'
+  | 'IN_PROGRESS'
+  | 'RESOLVED';
 
 export interface DetectionEvent {
   id: string;
@@ -37,7 +45,60 @@ export interface DetectionEvent {
   timestamp: string;
   status: EventStatus;
   evidence_url?: string | null;
-  metadata?: Record<string, any>;
+  acknowledged_at?: string | null;
+  resolved_at?: string | null;
+  /** The API serialises the JSON column under its alias; both keys are accepted. */
+  metadata?: Record<string, any> | null;
+  metadata_payload?: Record<string, any> | null;
+}
+
+/** Map layers the operator can switch on and off. */
+export type LayerKey =
+  | 'buses'
+  | 'routes'
+  | 'defects'
+  | 'traffic'
+  | 'waterlogging'
+  | 'incidents'
+  | 'infrastructure';
+
+export type LayerState = Record<LayerKey, boolean>;
+
+export type MapStyleKey = 'satellite' | 'streets' | 'hybrid';
+
+export interface MapOptionsState {
+  trafficLayer: boolean;
+  threeD: boolean;
+  labels: boolean;
+  weather: boolean;
+}
+
+export interface SystemHealth {
+  api: 'ONLINE' | 'OFFLINE';
+  database: 'ONLINE' | 'OFFLINE';
+  ingest: 'RUNNING' | 'STALE' | 'STOPPED';
+  last_telemetry: string | null;
+  telemetry_age_seconds: number | null;
+  buses: number;
+  events: number;
+  server_time: string;
+}
+
+export interface FleetCounts {
+  active: number;
+  idle: number;
+  offline: number;
+  total: number;
+}
+
+/** Repeat sightings of the same defect at the same place, grouped for the detail panel. */
+export interface EventCluster {
+  key: string;
+  eventIds: string[];
+  busIds: string[];
+  firstSeen: string;
+  lastSeen: string;
+  sightings: number;
 }
 
 export interface DashboardStats {

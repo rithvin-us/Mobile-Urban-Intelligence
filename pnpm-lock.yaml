@@ -35,6 +35,9 @@ importers:
         specifier: ^2.2.2
         version: 2.6.1
     devDependencies:
+      '@types/google.maps':
+        specifier: 3.66.3
+        version: 3.66.3
       '@types/node':
         specifier: ^20.11.30
         version: 20.19.43

@@ -16,6 +16,8 @@ class Event(Base):
     timestamp = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     status = Column(String(20), nullable=False, default="NEW")
     evidence_url = Column(String(500), nullable=True)
+    acknowledged_at = Column(DateTime, nullable=True)
+    resolved_at = Column(DateTime, nullable=True)
     metadata_payload = Column("metadata_payload", JSON, nullable=True)
 
 

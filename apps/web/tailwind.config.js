@@ -10,27 +10,36 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(214.3 31.8% 91.4%)",
-        input: "hsl(214.3 31.8% 91.4%)",
-        ring: "hsl(222.2 84% 4.9%)",
-        background: "hsl(0 0% 100%)",
-        foreground: "hsl(222.2 84% 4.9%)",
-        primary: {
-          DEFAULT: "hsl(222.2 47.4% 11.2%)",
-          foreground: "hsl(210 40% 98%)",
-        },
-        secondary: {
-          DEFAULT: "hsl(210 40% 96.1%)",
-          foreground: "hsl(222.2 47.4% 11.2%)",
-        },
-        muted: {
-          DEFAULT: "hsl(210 40% 96.1%)",
-          foreground: "hsl(215.4 16.3% 46.9%)",
-        },
-        accent: {
-          DEFAULT: "hsl(210 40% 96.1%)",
-          foreground: "hsl(222.2 47.4% 11.2%)",
-        },
+        // Operations console surfaces: charcoal canvas, dark navy panels.
+        canvas: "#0B0E12",
+        panel: "#0F141A",
+        raised: "#141B23",
+        hover: "#1A222C",
+        line: "#1E2833",
+        "line-soft": "#18202A",
+
+        ink: "#DCE3EA",
+        dim: "#8FA0AF",
+        faint: "#62727E",
+
+        accent: "#4C86C6",
+        "accent-soft": "#1B2E44",
+        "accent-line": "#325F8C",
+
+        ok: "#4F9D77",
+        warn: "#C9922F",
+        crit: "#C7564C",
+        water: "#4E96A6",
+      },
+      fontFamily: {
+        sans: ['Inter', 'IBM Plex Sans', 'Segoe UI', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
+      },
+      fontSize: {
+        '2xs': ['10px', '14px'],
+      },
+      boxShadow: {
+        float: '0 10px 30px -12px rgba(0,0,0,0.75)',
       },
     },
   },

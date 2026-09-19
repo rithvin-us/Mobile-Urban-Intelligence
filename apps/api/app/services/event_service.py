@@ -49,7 +49,19 @@ def update_event_status(db: Session, event_id: str, new_status: str) -> Optional
     event = get_event_by_id(db, event_id)
     if not event:
         return None
-    event.status = new_status.value if hasattr(new_status, "value") else str(new_status)
+    resolved = new_status.value if hasattr(new_status, "value") else str(new_status)
+    now = datetime.now(timezone.utc)
+
+    # Stamp the first operator touch and the closure so response time is measurable.
+    if resolved != "NEW" and event.acknowledged_at is None:
+        event.acknowledged_at = now
+    if resolved == "RESOLVED":
+        if event.resolved_at is None:
+            event.resolved_at = now
+    else:
+        event.resolved_at = None
+
+    event.status = resolved
     db.commit()
     db.refresh(event)
     return event

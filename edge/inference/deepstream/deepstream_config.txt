@@ -1,0 +1,54 @@
+# NVIDIA DeepStream SDK Pipeline Configuration Template
+# Hardware: NVIDIA Jetson Orin Nano / Orin NX / Xavier
+# Objective: Zero-copy GPU camera stream decoding, TensorRT inference, and ByteTrack tracking
+
+[application]
+enable-perf-measurement=1
+perf-measurement-interval-sec=5
+
+[source-attr-0]
+enable=1
+# Type: 1=Camera (V4L2), 2=URI (RTSP), 3=Multi-URI, 4=CSI Camera
+type=4
+camera-width=1920
+camera-height=1080
+camera-fps-n=30
+camera-fps-d=1
+gpu-id=0
+nvbuf-memory-type=0
+
+[streammux]
+gpu-id=0
+live-source=1
+batch-size=1
+batched-push-timeout=40000
+width=1920
+height=1080
+enable-padding=0
+
+[primary-gie]
+enable=1
+gpu-id=0
+model-engine-file=../models/pothole_traffic_detector.engine
+batch-size=1
+bbox-border-color0=1;0;0;1
+bbox-bg-color0=0;0;0;0.4
+gie-unique-id=1
+nvbuf-memory-type=0
+config-file=config_infer_primary.txt
+
+[tracker]
+enable=1
+tracker-width=960
+tracker-height=540
+ll-lib-file=/opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so
+ll-config-file=config_tracker_bytetrack.yml
+gpu-id=0
+display-tracking-id=1
+
+[sink0]
+enable=1
+# Type: 1=Fakesink, 2=EGL (Display), 3=File, 4=RTSP Out, 5=Overlay
+type=1
+sync=0
+gpu-id=0

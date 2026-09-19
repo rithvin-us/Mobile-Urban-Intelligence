@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package urban.intelligence;
+
+enum EventType {
+  POTHOLE = 0;
+  ROAD_DAMAGE = 1;
+  WATERLOGGING = 2;
+  TRAFFIC = 3;
+  TRAFFIC_SIGN = 4;
+  ZEBRA_CROSSING = 5;
+  PEDESTRIAN_RISK = 6;
+  INCIDENT = 7;
+}
+
+enum EventSeverity {
+  LOW = 0;
+  MEDIUM = 1;
+  HIGH = 2;
+  CRITICAL = 3;
+}
+
+message TelemetryPacket {
+  string bus_id = 1;
+  string bus_number = 2;
+  string route_name = 3;
+  double latitude = 4;
+  double longitude = 5;
+  float heading = 6;
+  float speed = 7;
+  int64 timestamp_epoch_ms = 8;
+}
+
+message DetectionEventPacket {
+  string event_id = 1;
+  string bus_id = 2;
+  EventType event_type = 3;
+  float confidence = 4;
+  EventSeverity severity = 5;
+  double latitude = 6;
+  double longitude = 7;
+  int64 timestamp_epoch_ms = 8;
+  string evidence_url = 9;
+}
+
+message BatchTelemetryRequest {
+  repeated TelemetryPacket packets = 1;
+}
