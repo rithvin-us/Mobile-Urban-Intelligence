@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import engine, Base, ensure_schema
+from app.core.database import engine, Base, ensure_schema, SessionLocal
+from app.db.seed import seed_regional_fleet
 from app.api.endpoints.health import router as health_router
 from app.api.router import api_router
 
@@ -12,10 +13,12 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create database tables automatically and apply migrations on app startup."""
+    """Create database tables automatically, apply migrations, and seed regional fleet on startup."""
     try:
         Base.metadata.create_all(bind=engine)
         ensure_schema()
+        with SessionLocal() as db:
+            seed_regional_fleet(db)
     except Exception as e:
         logger.warning(f"Database table initialization warning: {e}")
     yield

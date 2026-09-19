@@ -32,12 +32,15 @@ def setup_db():
     Base.metadata.drop_all(bind=engine)
 
 def test_health_check():
-    """Verify backend health check returns 200 OK and healthy status."""
+    """Verify backend health check returns 200 OK for GET and HEAD requests."""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
     assert data["service"] == "urban-intelligence-api"
+
+    head_response = client.head("/health")
+    assert head_response.status_code == 200
 
 def test_get_nonexistent_bus_404():
     """Verify requesting a non-existent bus returns 404 NOT FOUND."""
@@ -175,3 +178,16 @@ def test_invalid_event_payload_422():
     }
     res = client.post("/api/events", json=invalid_payload)
     assert res.status_code == 422
+
+def test_reset_fleet_distribution():
+    """Verify posting to /reset-fleet seeds 24 regional buses across 50km radius."""
+    res = client.post("/api/buses/reset-fleet")
+    assert res.status_code == 200
+    buses = res.json()
+    assert len(buses) == 24
+    # Check that Mettupalayam (11.30, 76.95) and Tiruppur (11.10, 77.34) exist in fleet
+    routes = {b["route_name"] for b in buses}
+    assert "101" in routes
+    assert "202" in routes
+    assert "303" in routes
+

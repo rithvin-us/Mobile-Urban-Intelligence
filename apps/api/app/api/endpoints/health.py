@@ -16,7 +16,7 @@ TELEMETRY_FRESH_SECONDS = 30
 TELEMETRY_STALE_SECONDS = 120
 
 
-@router.get("/health", tags=["Health"])
+@router.api_route("/health", methods=["GET", "HEAD"], tags=["Health"])
 def health_check():
     return {
         "status": "healthy",

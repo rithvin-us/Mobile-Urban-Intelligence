@@ -55,5 +55,11 @@ def update_bus_telemetry_batch(telemetry_batch: List[BusTelemetryUpdate], db: Se
         bus = bus_service.update_or_create_telemetry(db, item)
         RedisService.update_bus_geo(bus.id, bus.longitude, bus.latitude)
         updated_buses.append(bus)
-    return updated_buses
+from app.db.seed import seed_regional_fleet
+
+@router.post("/reset-fleet", response_model=List[BusResponse], status_code=status.HTTP_200_OK)
+def reset_fleet_distribution(db: Session = Depends(get_db)):
+    """Resets the fleet distribution across the 50km radius Coimbatore regional transit network."""
+    seed_regional_fleet(db)
+    return bus_service.get_all_buses(db)
 
