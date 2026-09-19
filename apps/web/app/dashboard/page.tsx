@@ -27,8 +27,12 @@ import {
 import { ROUTES } from '@/lib/routes';
 import { radarTileTemplate } from '@/lib/weather';
 import { OpsMap, type MapHandle } from '@/components/map/ops_map';
+import { TopBar } from '@/components/ops/top_bar';
 import { BusCard } from '@/components/ops/bus_card';
 import { EventCard } from '@/components/ops/event_card';
+import { QuickFilterBar } from '@/components/ops/quick_filter_bar';
+import { CriticalAlertBanner } from '@/components/ops/critical_alert_banner';
+import { KeyboardShortcutsModal } from '@/components/ops/keyboard_shortcuts_modal';
 import { LeftPanel } from '@/components/ops/left_panel';
 import { MapToolbar } from '@/components/ops/map_toolbar';
 import {
@@ -36,7 +40,6 @@ import {
   type SeverityFilter,
   type StatusFilter,
 } from '@/components/ops/right_panel';
-import { TopBar } from '@/components/ops/top_bar';
 
 // The 3D twin pulls in a WebGL renderer, so it loads only when opened.
 const BusTelemetryModal = dynamic(
@@ -84,12 +87,26 @@ export default function DashboardPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [pendingEventId, setPendingEventId] = useState<string | null>(null);
   const [show3DModal, setShow3DModal] = useState<boolean>(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState<boolean>(false);
+  const [dismissedAlertId, setDismissedAlertId] = useState<string | null>(null);
+  const [quickCriticalOnly, setQuickCriticalOnly] = useState<boolean>(false);
+  const [quickActiveOnly, setQuickActiveOnly] = useState<boolean>(false);
 
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
 
   const mapRef = useRef<MapHandle | null>(null);
 
+  const latestCriticalEvent = useMemo(() => {
+    const criticals = events.filter(
+      (e) => (e.severity === 'CRITICAL' || e.severity === 'HIGH') && e.status !== 'RESOLVED'
+    );
+    if (criticals.length === 0) return null;
+    const latest = criticals[0];
+    if (dismissedAlertId === latest.id) return null;
+    return latest;
+  }, [events, dismissedAlertId]);
 
   /* ------------------------------------------------------------- polling */
   useEffect(() => {
@@ -132,8 +149,7 @@ export default function DashboardPage() {
     radarTileTemplate().then(setRadarTemplate);
   }, []);
 
-  // Narrow screens show the map alone; the panels open over it on demand, and
-  // both fold away again whenever the window drops below the two-panel width.
+  // Narrow screens show the map alone; the panels open over it on demand.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -150,15 +166,76 @@ export default function DashboardPage() {
     return () => narrow.removeEventListener('change', onChange);
   }, []);
 
+  /* ------------------------------------------------------------- theme & key shortcuts */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('urban_theme') as 'dark' | 'light' | null;
+    if (stored === 'dark' || stored === 'light') {
+      setThemeMode(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (themeMode === 'light') {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
+    localStorage.setItem('urban_theme', themeMode);
+  }, [themeMode]);
+
+  const toggleTheme = useCallback(() => {
+    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setSelectedBusId(null);
-      setSelectedEventId(null);
+      const active = document.activeElement;
+      const isInput =
+        active &&
+        (active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'SELECT' ||
+          (active as HTMLElement).isContentEditable);
+
+      if (event.key === 'Escape') {
+        setSelectedBusId(null);
+        setSelectedEventId(null);
+        setShowShortcutsModal(false);
+        return;
+      }
+
+      if (isInput) return;
+
+      if (event.key === '?') {
+        event.preventDefault();
+        setShowShortcutsModal((prev) => !prev);
+      } else if (event.key === 'f' || event.key === 'F') {
+        event.preventDefault();
+        mapRef.current?.fitFleet();
+      } else if (event.key === '3') {
+        event.preventDefault();
+        setOptions((prev) => ({ ...prev, threeD: !prev.threeD }));
+      } else if (event.key === 'l' || event.key === 'L') {
+        event.preventDefault();
+        setMapStyle((s) => (s === 'streets' ? 'satellite' : s === 'satellite' ? 'hybrid' : 'streets'));
+      } else if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        setOptions((prev) => ({ ...prev, weather: !prev.weather }));
+      } else if (event.key === 't' || event.key === 'T') {
+        event.preventDefault();
+        toggleTheme();
+      }
     };
+
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [toggleTheme]);
+
 
   /* ------------------------------------------------------------- derived */
   const busById = useMemo(() => busLookup(buses), [buses]);
@@ -285,6 +362,8 @@ export default function DashboardPage() {
         now={now}
         leftCollapsed={leftCollapsed}
         rightCollapsed={rightCollapsed}
+        themeMode={themeMode}
+        onToggleTheme={toggleTheme}
         onToggleLeft={() => setLeftCollapsed((value) => !value)}
         onToggleRight={() => setRightCollapsed((value) => !value)}
         onFullscreen={() => mapRef.current?.toggleFullscreen()}
@@ -323,6 +402,7 @@ export default function DashboardPage() {
             layers={layers}
             mapStyle={mapStyle}
             options={options}
+            themeMode={themeMode}
             radarTemplate={radarTemplate}
             selectedBusId={selectedBusId}
             selectedEventId={selectedEventId}
@@ -331,6 +411,51 @@ export default function DashboardPage() {
           />
 
           <div className="pointer-events-none absolute inset-0">
+            {latestCriticalEvent && (
+              <div className="pointer-events-auto absolute top-3 left-1/2 -translate-x-1/2 z-30 max-w-md w-full px-4">
+                <CriticalAlertBanner
+                  criticalEvent={latestCriticalEvent}
+                  now={now}
+                  onLocate={(event) => selectEvent(event.id)}
+                  onDismiss={() => setDismissedAlertId(latestCriticalEvent.id)}
+                />
+              </div>
+            )}
+
+            <div className="pointer-events-auto absolute top-3 left-3 z-20">
+              <QuickFilterBar
+                criticalOnly={quickCriticalOnly}
+                activeOnly={quickActiveOnly}
+                weatherOnly={options.weather}
+                onToggleCriticalOnly={() => {
+                  setQuickCriticalOnly((prev) => {
+                    const next = !prev;
+                    if (next) setSeverityFilter('HIGH_UP');
+                    else setSeverityFilter('ALL');
+                    return next;
+                  });
+                }}
+                onToggleActiveOnly={() => {
+                  setQuickActiveOnly((prev) => {
+                    const next = !prev;
+                    if (next) setStatusFilter('OPEN');
+                    else setStatusFilter('ALL');
+                    return next;
+                  });
+                }}
+                onToggleWeatherOnly={() => {
+                  setOptions((prev) => ({ ...prev, weather: !prev.weather }));
+                }}
+                onResetFilters={() => {
+                  setQuickCriticalOnly(false);
+                  setQuickActiveOnly(false);
+                  setSeverityFilter('ALL');
+                  setStatusFilter('ALL');
+                  setOptions((prev) => ({ ...prev, weather: false }));
+                }}
+              />
+            </div>
+
             <MapToolbar
               mapStyle={mapStyle}
               onMapStyleChange={setMapStyle}
@@ -370,7 +495,7 @@ export default function DashboardPage() {
                   onCenter={() =>
                     mapRef.current?.panTo(selectedEvent.latitude, selectedEvent.longitude, 17)
                   }
-                  onStatusChange={(status) => handleStatusChange(selectedEvent.id, status)}
+                  onStatusChange={(status: EventStatus) => handleStatusChange(selectedEvent.id, status)}
                   onSelectBus={selectBus}
                 />
               )}
@@ -411,6 +536,12 @@ export default function DashboardPage() {
           onClose={() => setShow3DModal(false)}
         />
       )}
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
     </div>
   );
 }

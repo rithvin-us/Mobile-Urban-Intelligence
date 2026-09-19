@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bus as BusIcon, Maximize2, PanelLeft, PanelRight, Clock } from 'lucide-react';
+import { Bus as BusIcon, Maximize2, PanelLeft, PanelRight, Clock, Sun, Moon } from 'lucide-react';
 
 import type { FleetCounts, SystemHealth } from '@/types';
 import { CITY_NAME } from '@/lib/routes';
@@ -17,6 +17,8 @@ interface TopBarProps {
   now: number;
   leftCollapsed: boolean;
   rightCollapsed: boolean;
+  themeMode?: 'dark' | 'light';
+  onToggleTheme?: () => void;
   onToggleLeft: () => void;
   onToggleRight: () => void;
   onFullscreen: () => void;
@@ -42,6 +44,8 @@ export function TopBar({
   now,
   leftCollapsed,
   rightCollapsed,
+  themeMode = 'dark',
+  onToggleTheme,
   onToggleLeft,
   onToggleRight,
   onFullscreen,
@@ -89,7 +93,7 @@ export function TopBar({
       <div className="ml-auto flex items-center gap-4">
         {/* Live Operational Clock */}
         <div className="flex items-center gap-1.5 rounded border border-line px-2.5 py-1 font-mono text-[11px] text-ink bg-canvas/40">
-          <Clock className="h-3.5 w-3.5 text-blue-400" aria-hidden />
+          <Clock className="h-3.5 w-3.5 text-accent" aria-hidden />
           <span className="font-semibold tracking-wider">{formattedTime}</span>
           <span className="text-[10px] text-faint hidden lg:inline">| {formattedDate}</span>
         </div>
@@ -101,8 +105,25 @@ export function TopBar({
           </span>
         </div>
 
-
         <div className="flex items-center gap-1">
+          {/* Theme Mode Toggle Button with Shortcut Hint */}
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} theme (Key: T)`}
+            title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} theme (Press 'T')`}
+            className="flex items-center gap-1 rounded border border-line bg-raised px-2 py-1 text-xs text-ink transition-colors hover:bg-hover hover:border-accent-line"
+          >
+            {themeMode === 'dark' ? (
+              <Sun className="h-3.5 w-3.5 text-amber-400" />
+            ) : (
+              <Moon className="h-3.5 w-3.5 text-blue-600" />
+            )}
+            <span className="hidden font-mono text-[10px] uppercase font-semibold text-faint sm:inline">
+              [T]
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={onToggleLeft}

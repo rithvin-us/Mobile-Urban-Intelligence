@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ChevronRight, PanelRight } from 'lucide-react';
+import { ChevronRight, PanelRight, Download } from 'lucide-react';
+import { exportDefectsToCSV } from '@/lib/export_reports';
 
 import type { Bus, DetectionEvent, EventSeverity, EventStatus, FleetCounts } from '@/types';
 import {
@@ -15,6 +16,7 @@ import { FLEET_STATE_COLORS } from '@/lib/fleet';
 import { usePlaceName } from '@/lib/use_place_name';
 import { Dot, SectionTitle, Segmented } from '@/components/ops/primitives';
 import { cn } from '@/lib/utils';
+
 
 export type StatusFilter = 'ALL' | 'OPEN' | EventStatus;
 export type SeverityFilter = 'ALL' | 'HIGH_UP';
@@ -156,16 +158,29 @@ export function RightPanel({
   return (
     <div className="flex h-full w-[302px] flex-col border-l border-line bg-panel">
       <div className="flex items-center justify-between border-b border-line px-3 py-2">
-        <span className="text-ink">City intelligence</span>
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          aria-label="Collapse intelligence panel"
-          className="text-faint transition-colors hover:text-ink"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <span className="text-ink font-medium">City intelligence</span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => exportDefectsToCSV(events)}
+            aria-label="Export Municipal Defects CSV Report"
+            title="Export Municipal Defects CSV Report"
+            className="flex items-center gap-1 px-2 py-0.5 rounded border border-line bg-canvas text-[11px] text-dim hover:text-ink transition"
+          >
+            <Download className="h-3 w-3 text-accent" />
+            <span>CSV</span>
+          </button>
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label="Collapse intelligence panel"
+            className="text-faint transition-colors hover:text-ink p-0.5"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
+
 
       <div className="flex min-h-0 flex-1 flex-col">
         <SectionTitle>Fleet</SectionTitle>

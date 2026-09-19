@@ -6,6 +6,7 @@ build/
 dist/
 .pnpm-debug.log*
 *.log
+*.tsbuildinfo
 
 # Python / Backend
 __pycache__/
@@ -18,6 +19,7 @@ venv/
 .venv/
 env/
 *.db
+*.db-journal
 
 
 # Environment / Secrets

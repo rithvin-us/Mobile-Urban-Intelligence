@@ -42,6 +42,7 @@ interface OpsMapProps {
   layers: LayerState;
   mapStyle: MapStyleKey;
   options: MapOptionsState;
+  themeMode?: 'dark' | 'light';
   radarTemplate: string | null;
   selectedBusId: string | null;
   selectedEventId: string | null;
@@ -88,6 +89,7 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
     layers,
     mapStyle,
     options,
+    themeMode = 'dark',
     radarTemplate,
     selectedBusId,
     selectedEventId,
@@ -139,13 +141,13 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
           center: CITY_CENTER,
           zoom: 13,
           mapTypeId: resolveMapTypeId(mapStyle, options.labels),
-          styles: resolveStyles(mapStyle, options.labels),
+          styles: resolveStyles(mapStyle, options.labels, themeMode),
           disableDefaultUI: true,
           clickableIcons: false,
           gestureHandling: 'greedy',
           keyboardShortcuts: true,
           rotateControl: false,
-          backgroundColor: '#0B0E12',
+          backgroundColor: themeMode === 'light' ? '#f8fafc' : '#0B0F17',
         });
 
         map.addListener('click', () => {
@@ -195,8 +197,11 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
     const map = mapRef.current;
     if (!map) return;
     map.setMapTypeId(resolveMapTypeId(mapStyle, options.labels));
-    map.setOptions({ styles: resolveStyles(mapStyle, options.labels) });
-  }, [ready, mapStyle, options.labels]);
+    map.setOptions({
+      styles: resolveStyles(mapStyle, options.labels, themeMode),
+      backgroundColor: themeMode === 'light' ? '#f8fafc' : '#0B0F17',
+    });
+  }, [ready, mapStyle, options.labels, themeMode]);
 
   /* -------------------------------------------------------------- 3D tilt */
   useEffect(() => {

@@ -28,6 +28,29 @@ export const DARK_STREETS: google.maps.MapTypeStyle[] = [
   { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3E5566' }] },
 ];
 
+export const LIGHT_STREETS: google.maps.MapTypeStyle[] = [
+  { elementType: 'geometry', stylers: [{ color: '#f8fafc' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#334155' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#cbd5e1' }] },
+  { featureType: 'administrative.land_parcel', stylers: [{ visibility: 'off' }] },
+  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#1e293b' }] },
+  { featureType: 'poi', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
+  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#e2f1e8' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#f1f5f9' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#e2e8f0' }] },
+  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#cbd5e1' }] },
+  { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'transit', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.line', elementType: 'geometry', stylers: [{ color: '#e2e8f0' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cbe5f6' }] },
+  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0284c7' }] },
+];
+
 const LABELS_OFF: google.maps.MapTypeStyle[] = [
   { elementType: 'labels', stylers: [{ visibility: 'off' }] },
 ];
@@ -43,9 +66,14 @@ export function resolveMapTypeId(style: MapStyleKey, labels: boolean): string {
   return labels ? 'hybrid' : 'satellite';
 }
 
-export function resolveStyles(style: MapStyleKey, labels: boolean): google.maps.MapTypeStyle[] {
+export function resolveStyles(
+  style: MapStyleKey,
+  labels: boolean,
+  theme: 'dark' | 'light' = 'dark'
+): google.maps.MapTypeStyle[] {
   if (style !== 'streets') return [];
-  return labels ? DARK_STREETS : [...DARK_STREETS, ...LABELS_OFF];
+  const base = theme === 'light' ? LIGHT_STREETS : DARK_STREETS;
+  return labels ? base : [...base, ...LABELS_OFF];
 }
 
 export const MAP_STYLE_LABELS: Record<MapStyleKey, string> = {

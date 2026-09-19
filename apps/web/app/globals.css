@@ -2,18 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+.dark {
+  --canvas: #0B0F17;
+  --panel: #111827;
+  --raised: #1F2937;
+  --hover: #374151;
+  --line: #1F2937;
+  --line-soft: #111827;
+
+  --ink: #F9FAFB;
+  --dim: #9CA3AF;
+  --faint: #6B7280;
+
+  --accent: #38BDF8;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-line: rgba(56, 189, 248, 0.28);
+
+  --ok: #10B981;
+  --warn: #F59E0B;
+  --crit: #EF4444;
+  --water: #06B6D4;
+}
+
+.light {
+  --canvas: #F8FAFC;
+  --panel: #FFFFFF;
+  --raised: #F1F5F9;
+  --hover: #E2E8F0;
+  --line: #E2E8F0;
+  --line-soft: #F8FAFC;
+
+  --ink: #0F172A;
+  --dim: #475569;
+  --faint: #64748B;
+
+  --accent: #0284C7;
+  --accent-soft: #EFF6FF;
+  --accent-line: #BFDBFE;
+
+  --ok: #059669;
+  --warn: #D97706;
+  --crit: #DC2626;
+  --water: #0891B2;
+}
+
 html,
 body {
   height: 100%;
 }
 
 body {
-  background: #0B0E12;
-  color: #DCE3EA;
+  background: var(--canvas);
+  color: var(--ink);
   font-family: Inter, 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Tabular figures keep telemetry columns from jittering as values change. */
@@ -25,7 +71,7 @@ body {
 /* Thin scrollbars so dense lists do not lose width to chrome. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #26313D transparent;
+  scrollbar-color: var(--line) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
@@ -35,15 +81,15 @@ body {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: #26313D;
+  background: var(--line);
   border-radius: 4px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #33404F;
+  background: var(--hover);
 }
 
 :focus-visible {
-  outline: 2px solid #4C86C6;
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
