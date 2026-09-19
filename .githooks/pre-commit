@@ -1,0 +1,14 @@
+#!/bin/sh
+# Git Pre-Commit Hook: Type Checking & Linting
+echo "🔍 Running Git Pre-Commit Checks..."
+
+# 1. Next.js TypeScript Type Check
+echo "⚡ Checking Next.js TypeScript types..."
+pnpm --filter web type-check
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit check failed: TypeScript type errors detected in apps/web."
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed successfully!"
+exit 0

@@ -1,0 +1,157 @@
+name: CI Pipeline - Urban Intelligence Platform
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Python Backend Test Suite & Service Containers
+  # -------------------------------------------------------------
+  backend-tests:
+    name: Backend API & Spatial PostGIS Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: urban_intelligence_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d urban_intelligence_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt
+          pip install pytest pytest-cov ruff
+
+      - name: Run Code Linter (Ruff)
+        run: |
+          ruff check apps/api --ignore E501
+
+      - name: Execute Pytest Test Suite
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/urban_intelligence_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          cd apps/api
+          python -m pytest --cov=app --cov-report=term-missing
+
+  # -------------------------------------------------------------
+  # Job 2: Frontend Next.js Type Check & Production Build
+  # -------------------------------------------------------------
+  frontend-tests:
+    name: Next.js Frontend & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Monorepo Dependencies
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Run TypeScript Type Checker
+        run: pnpm --filter web type-check
+
+      - name: Run Next.js Production Build Test
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: mock_key_for_ci_build
+        run: pnpm --filter web build
+
+  # -------------------------------------------------------------
+  # Job 3: Simulator Integration Verification
+  # -------------------------------------------------------------
+  simulator-verification:
+    name: Telemetry Simulator Pipeline Verification
+    runs-on: ubuntu-latest
+    needs: [backend-tests]
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Backend & Simulator Dependencies
+        run: |
+          pip install -r apps/api/requirements.txt
+
+      - name: Run Simulator Integration Test (10s Execution)
+        run: |
+          # Start FastAPI server in background
+          cd apps/api
+          python -m uvicorn app.main:app --port 8000 &
+          sleep 3
+
+          # Execute simulator for 10 seconds
+          cd ../..
+          python simulator/main.py 10
+
+  # -------------------------------------------------------------
+  # Job 4: Docker Container Build Check
+  # -------------------------------------------------------------
+  docker-build:
+    name: Docker Container Image Build Check
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build FastAPI Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/api
+          file: ./apps/api/Dockerfile
+          push: false
+          tags: urban-backend-api:ci-test

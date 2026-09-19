@@ -256,10 +256,33 @@ Open your browser and navigate to [http://localhost:3000/dashboard](http://local
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & DevOps CI/CD Workflows
 
-Execute automated API test suite:
+### 1. GitHub Actions Workflows (`.github/workflows/`)
+- **Continuous Integration (`.github/workflows/ci.yml`)**: Automated CI pipeline triggered on `push` and `pull_request` to `main`/`master` branches:
+  - **Backend Job**: Spins up PostgreSQL + PostGIS (`postgis/postgis:16-3.4-alpine`) & Redis service containers, installs requirements, executes `pytest` suite, and checks test coverage.
+  - **Frontend Job**: Executes TypeScript type-checking (`pnpm --filter web type-check`) and Next.js production build tests (`pnpm --filter web build`).
+  - **Simulator Verification**: Runs a 10-second end-to-end telemetry simulator test step against the FastAPI engine.
+  - **Docker Build Check**: Validates `apps/api/Dockerfile` container image build.
+- **Continuous Deployment (`.github/workflows/cd.yml`)**: Automated Docker container image build and release to GitHub Container Registry (`ghcr.io`) upon tagging a release (`v*.*.*`).
+
+### 2. Local Git Pre-Commit & Pre-Push Hooks (`.githooks/`)
+Enable local developer git hooks to catch errors before committing or pushing code:
+```bash
+python scripts/setup-hooks.py
+```
+- **Pre-Commit Hook**: Automatically runs Next.js TypeScript type check before allowing git commits.
+- **Pre-Push Hook**: Automatically runs the FastAPI Pytest test suite before allowing git pushes.
+
+### 3. Automated Test Execution
+Run the Python backend pytest test suite locally:
 ```bash
 cd apps/api
-pytest
+python -m pytest
 ```
+
+Run frontend type checking locally:
+```bash
+pnpm --filter web type-check
+```
+

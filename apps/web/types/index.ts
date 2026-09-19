@@ -2,6 +2,7 @@ export type BusStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE';
 
 export interface Bus {
   id: string;
+  bus_id?: string;
   bus_number: string;
   route_name: string;
   status: BusStatus;

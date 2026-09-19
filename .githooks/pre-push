@@ -1,0 +1,15 @@
+#!/bin/sh
+# Git Pre-Push Hook: Automated Unit Test Suite Execution
+echo "🧪 Running Git Pre-Push Unit Test Verification..."
+
+# Execute Python pytest suite
+echo "⚡ Running FastAPI Pytest backend suite..."
+cd apps/api
+python -m pytest
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-push check failed: Pytest test suite failed."
+  exit 1
+fi
+
+echo "✅ All unit tests passed! Proceeding with git push."
+exit 0
