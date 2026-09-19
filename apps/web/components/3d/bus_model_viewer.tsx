@@ -146,7 +146,7 @@ export const BusModelViewer: React.FC<BusModelViewerProps> = ({
 
     // Grid Floor
     const gridHelper = new THREE.GridHelper(30, 30, 0x3b82f6, 0x1e293b);
-    gridHelper.position.y = -1.2;
+    gridHelper.position.y = 0;
     scene.add(gridHelper);
 
     // Hotspot Group
@@ -165,13 +165,13 @@ export const BusModelViewer: React.FC<BusModelViewerProps> = ({
         const model = gltf.scene;
         modelGroupRef.current = model;
 
-        // Auto-center and scale model
+        // Auto-center and scale model so bottom rests on grid floor (y = 0)
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
 
         model.position.x = -center.x;
-        model.position.y = -center.y - 1.2;
+        model.position.y = -box.min.y;
         model.position.z = -center.z;
 
         // Store original positions for exploding animation
@@ -187,13 +187,12 @@ export const BusModelViewer: React.FC<BusModelViewerProps> = ({
 
         scene.add(model);
 
-        // Adjust camera position based on bounding box
+        // Adjust camera position based on bounding box to look at center of bus
         const maxDim = Math.max(size.x, size.y, size.z);
         const fov = camera.fov * (Math.PI / 180);
         let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
-        camera.position.set(cameraZ * 0.8, cameraZ * 0.5, cameraZ * 1.1);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
+        camera.position.set(cameraZ * 0.8, size.y * 0.6 + cameraZ * 0.4, cameraZ * 1.1);
+        controls.target.set(0, size.y * 0.5, 0);
         controls.update();
 
         // Render Sensor Hotspot Pins
