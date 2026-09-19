@@ -37,6 +37,8 @@ import {
 } from '@/components/ops/right_panel';
 import { TopBar } from '@/components/ops/top_bar';
 
+import { BusTelemetryModal } from '@/components/dashboard/bus_telemetry_modal';
+
 const BUS_POLL_MS = 2000;
 const EVENT_POLL_MS = 4000;
 const HEALTH_POLL_MS = 6000;
@@ -76,11 +78,13 @@ export default function DashboardPage() {
   const [selectedBusId, setSelectedBusId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [pendingEventId, setPendingEventId] = useState<string | null>(null);
+  const [show3DModal, setShow3DModal] = useState<boolean>(false);
 
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
   const mapRef = useRef<MapHandle | null>(null);
+
 
   /* ------------------------------------------------------------- polling */
   useEffect(() => {
@@ -330,10 +334,14 @@ export default function DashboardPage() {
                   bus={selectedBus}
                   events={selectedBusEvents}
                   now={now}
-                  onClose={() => setSelectedBusId(null)}
+                  onClose={() => {
+                    setSelectedBusId(null);
+                    setShow3DModal(false);
+                  }}
                   onCenter={() =>
                     mapRef.current?.panTo(selectedBus.latitude, selectedBus.longitude, 16)
                   }
+                  onOpen3DView={() => setShow3DModal(true)}
                   onSelectEvent={selectEvent}
                 />
               )}
@@ -380,6 +388,16 @@ export default function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* Interactive 3D WebGL Bharat Bus & Sensor Viewer Modal */}
+      {show3DModal && selectedBus && (
+        <BusTelemetryModal
+          bus={selectedBus}
+          events={events}
+          onClose={() => setShow3DModal(false)}
+        />
+      )}
     </div>
   );
 }
+

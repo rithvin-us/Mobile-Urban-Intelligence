@@ -1,7 +1,5 @@
-'use client';
-
 import React from 'react';
-import { Crosshair } from 'lucide-react';
+import { Crosshair, Box } from 'lucide-react';
 
 import type { Bus, DetectionEvent } from '@/types';
 import {
@@ -27,11 +25,12 @@ interface BusCardProps {
   events: DetectionEvent[];
   onClose: () => void;
   onCenter: () => void;
+  onOpen3DView?: () => void;
   onSelectEvent: (eventId: string) => void;
   now: number;
 }
 
-export function BusCard({ bus, events, onClose, onCenter, onSelectEvent, now }: BusCardProps) {
+export function BusCard({ bus, events, onClose, onCenter, onOpen3DView, onSelectEvent, now }: BusCardProps) {
   const state = fleetState(bus, now);
   const place = usePlaceName(bus.latitude, bus.longitude);
   const recent = events.slice(0, 3);
@@ -91,8 +90,16 @@ export function BusCard({ bus, events, onClose, onCenter, onSelectEvent, now }: 
         )}
       </div>
 
-      <div className="flex gap-1 border-t border-line px-2 py-2">
-        <ActionButton tone="primary" onClick={onCenter}>
+      <div className="flex flex-col gap-1.5 border-t border-line px-2 py-2">
+        {onOpen3DView && (
+          <ActionButton tone="primary" onClick={onOpen3DView}>
+            <span className="flex items-center justify-center gap-1.5 font-semibold text-blue-400">
+              <Box className="h-3.5 w-3.5" aria-hidden />
+              Inspect 3D Twin & Sensors
+            </span>
+          </ActionButton>
+        )}
+        <ActionButton onClick={onCenter}>
           <span className="flex items-center justify-center gap-1.5">
             <Crosshair className="h-3 w-3" aria-hidden />
             Follow on map
@@ -102,3 +109,4 @@ export function BusCard({ bus, events, onClose, onCenter, onSelectEvent, now }: 
     </FloatingPanel>
   );
 }
+

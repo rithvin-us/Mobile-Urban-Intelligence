@@ -78,7 +78,7 @@ async function build(): Promise<Record<SpriteVariant, SpriteSet> | null> {
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
-    scene.add(new THREE.AmbientLight(0xffffff, 1.05));
+    scene.add(new THREE.AmbientLight(0xBcd6ee, 1.15));
     const key = new THREE.DirectionalLight(0xffffff, 1.7);
     key.position.set(2, 4, 3);
     scene.add(key);
@@ -121,8 +121,8 @@ async function build(): Promise<Record<SpriteVariant, SpriteSet> | null> {
 
     // Looking down at a shallow angle keeps the roof readable while the body
     // still reads as a vehicle rather than a rectangle.
-    const camera = new THREE.OrthographicCamera(-0.46, 0.46, 0.46, -0.46, 0.01, 12);
-    camera.position.set(0, 2.4, 1.45);
+    const camera = new THREE.OrthographicCamera(-0.62, 0.62, 0.62, -0.62, 0.01, 14);
+    camera.position.set(0, 3.1, 1.15);
     camera.lookAt(0, 0, 0);
 
     const variants: SpriteVariant[] = ['ACTIVE', 'IDLE', 'OFFLINE', 'SELECTED'];
