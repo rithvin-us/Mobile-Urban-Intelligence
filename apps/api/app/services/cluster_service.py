@@ -1,7 +1,6 @@
 import math
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from app.models.event import Event
 
 def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

@@ -1,3 +1,4 @@
+import importlib.util
 import logging
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -9,9 +10,7 @@ db_url = settings.DATABASE_URL
 connect_args = {}
 
 if db_url.startswith("postgresql"):
-    try:
-        import psycopg2  # check driver availability
-    except ImportError:
+    if importlib.util.find_spec("psycopg2") is None:
         logger.warning("psycopg2 not found locally. Falling back to SQLite database.")
         db_url = "sqlite:///./urban_intelligence.db"
 

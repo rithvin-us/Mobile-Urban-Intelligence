@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Dict, Any
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

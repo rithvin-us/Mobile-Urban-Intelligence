@@ -1,0 +1,11 @@
+# Local development artefacts that must not reach the image
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite3
+.env
+.env.*
+tests/

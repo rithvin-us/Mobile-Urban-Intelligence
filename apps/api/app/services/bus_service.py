@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.bus import Bus
-from app.schemas.bus import BusCreate, BusTelemetryUpdate
+from app.schemas.bus import BusTelemetryUpdate
 
 def get_all_buses(db: Session) -> List[Bus]:
     return db.query(Bus).all()

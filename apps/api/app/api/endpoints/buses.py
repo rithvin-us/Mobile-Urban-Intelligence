@@ -5,7 +5,6 @@ from app.core.database import get_db
 from app.schemas.bus import BusResponse, BusTelemetryUpdate
 from app.services import bus_service
 from app.services.redis_service import RedisService
-from app.api.endpoints.websockets import ws_manager
 
 router = APIRouter(prefix="/buses", tags=["Buses"])
 
