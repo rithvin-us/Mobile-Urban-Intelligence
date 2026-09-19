@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Bus, DetectionEvent } from '@/types';
 import { BusModelViewer } from '@/components/3d/bus_model_viewer';
-import { X, Navigation, Gauge, AlertTriangle, ExternalLink, Activity, Cpu } from 'lucide-react';
+import { X, Navigation, Gauge, AlertTriangle, ExternalLink, Video, Box, Cpu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface BusTelemetryModalProps {
@@ -14,11 +14,113 @@ interface BusTelemetryModalProps {
 }
 
 export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, events, onClose }) => {
-  if (!bus) return null;
+  const [viewMode, setViewMode] = useState<'3d' | 'camera'>('3d');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const busId = bus.bus_id || bus.id;
+  const busId = bus?.bus_id || bus?.id;
   const busEvents = events.filter((e) => e.bus_id === busId);
   const latestDefect = busEvents.length > 0 ? busEvents[0] : null;
+
+  // Simulated AI Dashcam Overlay Canvas Renderer
+  useEffect(() => {
+    if (!bus || viewMode !== 'camera') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let frameCount = 0;
+
+    const renderDashcamFeed = () => {
+      frameCount++;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // 1. Render Simulated Road Highway Background
+      const gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, '#0f172a'); // Horizon sky
+      gradient.addColorStop(0.4, '#1e293b');
+      gradient.addColorStop(1, '#020617'); // Road surface
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw Perspective Lane Lines
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 12]);
+      ctx.beginPath();
+      ctx.moveTo(w / 2, h * 0.45);
+      ctx.lineTo(w * 0.1, h);
+      ctx.moveTo(w / 2, h * 0.45);
+      ctx.lineTo(w * 0.9, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Horizon line
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.45);
+      ctx.lineTo(w, h * 0.45);
+      ctx.stroke();
+
+      // 2. Simulated Moving Defect Bounding Box
+      const offset = (frameCount * 2) % (h * 0.55);
+      const boxY = h * 0.45 + offset;
+      const boxX = w * 0.38 + Math.sin(frameCount * 0.05) * 30;
+      const boxW = 80 + (offset / (h * 0.55)) * 50;
+      const boxH = 40 + (offset / (h * 0.55)) * 25;
+
+      if (boxY < h - 20) {
+        ctx.strokeStyle = '#ef4444'; // Red bounding box
+        ctx.lineWidth = 2;
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(boxX, boxY - 18, 130, 18);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(`[POTHOLE] 94.8%`, boxX + 4, boxY - 5);
+      }
+
+      // 3. Camera HUD Overlay
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.fillRect(8, 8, 160, 42);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(8, 8, 160, 42);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(`CAM-01 FRONT AI`, 14, 22);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '9px monospace';
+      ctx.fillText(`FPS: ${(32 + Math.sin(frameCount * 0.1) * 2).toFixed(1)} | Jetson`, 14, 38);
+
+      // REC Dot Indicator
+      ctx.fillStyle = (frameCount % 40 < 20) ? '#ef4444' : '#7f1d1d';
+      ctx.beginPath();
+      ctx.arc(w - 18, 18, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillText(`LIVE`, w - 45, 21);
+
+      animId = requestAnimationFrame(renderDashcamFeed);
+    };
+
+    renderDashcamFeed();
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [bus, viewMode]);
+
+  if (!bus) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -52,21 +154,57 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
           </button>
         </div>
 
-        {/* Compact 3D Bus Viewport */}
+        {/* Viewport Area: Toggleable between 3D Model and Live AI Camera Feed */}
         <div className="relative w-full h-[190px] bg-slate-950 border-b border-slate-800/80">
-          <BusModelViewer
-            modelUrl="/bharat-bus-av.glb"
-            busHeading={bus.heading}
-            autoRotate={true}
-            interactiveHotspots={false}
-            className="w-full h-full"
-          />
-          {/* Live Speed Overlay Badge */}
-          <div className="absolute top-2 right-2 bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-800 flex items-center gap-1.5 shadow-md">
+          
+          {/* Top Left Toggle Pills */}
+          <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-slate-900/90 backdrop-blur p-1 rounded-lg border border-slate-800 shadow-md">
+            <button
+              onClick={() => setViewMode('3d')}
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                viewMode === '3d'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Box className="h-3 w-3" />
+              <span>3D Bus</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('camera')}
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                viewMode === 'camera'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Video className="h-3 w-3" />
+              <span>Live Feed</span>
+            </button>
+          </div>
+
+          {/* Top Right Speed Indicator */}
+          <div className="absolute top-2 right-2 z-20 bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-800 flex items-center gap-1.5 shadow-md">
             <Gauge className="h-3.5 w-3.5 text-blue-400" />
             <span className="text-xs font-bold text-white">{bus.speed.toFixed(0)}</span>
             <span className="text-[10px] text-slate-400">km/h</span>
           </div>
+
+          {/* Viewport Content */}
+          {viewMode === '3d' ? (
+            <BusModelViewer
+              modelUrl="/bharat-bus-av.glb"
+              busHeading={bus.heading}
+              autoRotate={true}
+              interactiveHotspots={false}
+              className="w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full relative overflow-hidden bg-slate-950">
+              <canvas ref={canvasRef} width={420} height={190} className="w-full h-full object-cover" />
+            </div>
+          )}
         </div>
 
         {/* Basic Overview Telemetry Grid */}
