@@ -10,26 +10,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Operations console surfaces: charcoal canvas, dark navy panels.
-        canvas: "#0B0E12",
-        panel: "#0F141A",
-        raised: "#141B23",
-        hover: "#1A222C",
-        line: "#1E2833",
-        "line-soft": "#18202A",
+        canvas: "var(--canvas)",
+        panel: "var(--panel)",
+        raised: "var(--raised)",
+        hover: "var(--hover)",
+        line: "var(--line)",
+        "line-soft": "var(--line-soft)",
 
-        ink: "#DCE3EA",
-        dim: "#8FA0AF",
-        faint: "#62727E",
+        ink: "var(--ink)",
+        dim: "var(--dim)",
+        faint: "var(--faint)",
 
-        accent: "#4C86C6",
-        "accent-soft": "#1B2E44",
-        "accent-line": "#325F8C",
+        accent: "var(--accent)",
+        "accent-soft": "var(--accent-soft)",
+        "accent-line": "var(--accent-line)",
 
-        ok: "#4F9D77",
-        warn: "#C9922F",
-        crit: "#C7564C",
-        water: "#4E96A6",
+        ok: "var(--ok)",
+        warn: "var(--warn)",
+        crit: "var(--crit)",
+        water: "var(--water)",
       },
       fontFamily: {
         sans: ['Inter', 'IBM Plex Sans', 'Segoe UI', 'system-ui', '-apple-system', 'sans-serif'],

@@ -44,9 +44,9 @@ const BusTelemetryModal = dynamic(
   { ssr: false }
 );
 
-const BUS_POLL_MS = 2000;
-const EVENT_POLL_MS = 4000;
-const HEALTH_POLL_MS = 6000;
+const BUS_POLL_MS = 1000;
+const EVENT_POLL_MS = 2000;
+const HEALTH_POLL_MS = 5000;
 
 const DEFAULT_LAYERS: LayerState = {
   buses: true,

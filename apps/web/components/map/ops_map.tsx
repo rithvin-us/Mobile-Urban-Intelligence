@@ -65,6 +65,22 @@ const BUS_FILL: Record<string, string> = {
 /** Tilted imagery is only available on satellite basemaps at close zoom. */
 const TILT_MIN_ZOOM = 17;
 
+interface BusMotionState {
+  startLat: number;
+  startLng: number;
+  startHeading: number;
+  targetLat: number;
+  targetLng: number;
+  targetHeading: number;
+  currentLat: number;
+  currentLng: number;
+  currentHeading: number;
+  speed: number;
+  status: string;
+  updateTime: number;
+  duration: number;
+}
+
 export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
   {
     buses,
@@ -84,6 +100,7 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const busMarkers = useRef(new Map<string, google.maps.Marker>());
+  const busMotionStates = useRef(new Map<string, BusMotionState>());
   const eventMarkers = useRef(new Map<string, google.maps.Marker>());
   const routeLines = useRef(new Map<string, google.maps.Polyline>());
   const trafficRef = useRef<google.maps.TrafficLayer | null>(null);
@@ -138,8 +155,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
 
         mapRef.current = map;
 
-        // The panels settle after mount; if the map were measured at zero size
-        // it would never paint its tiles, so nudge it whenever the box changes.
         if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
           const observer = new ResizeObserver(() => {
             const center = map.getCenter();
@@ -154,7 +169,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
         onReady?.();
       })
       .catch((err: Error) => {
-        // Surfaced in the map area so a failed basemap is never a silent blank.
         if (!cancelled) setLoadError(err.message);
       });
 
@@ -163,8 +177,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
       resizeObserverRef.current?.disconnect();
       resizeObserverRef.current = null;
     };
-    // Initialises once; style and option changes are applied by the effects below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
 
   /* ---------------------------------------------------- bus model sprites */
@@ -303,6 +315,7 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
     if (!maps) return;
 
     const now = Date.now();
+    const perfNow = performance.now();
     const seen = new Set<string>();
 
     buses.forEach((bus) => {
@@ -312,7 +325,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
       const variant: SpriteVariant = selected ? 'SELECTED' : state;
       const frames = sprites?.[variant];
 
-      // The rendered vehicle when the model is ready, a plain arrow until then.
       const size = selected ? BUS_MARKER_PX_SELECTED : BUS_MARKER_PX;
       const icon: google.maps.Icon | google.maps.Symbol = frames
         ? {
@@ -332,6 +344,39 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
             anchor: new maps.Point(0, 0),
           };
 
+      // Update Motion Interpolation State
+      const existingMotion = busMotionStates.current.get(bus.id);
+      if (!existingMotion) {
+        busMotionStates.current.set(bus.id, {
+          startLat: bus.latitude,
+          startLng: bus.longitude,
+          startHeading: bus.heading,
+          targetLat: bus.latitude,
+          targetLng: bus.longitude,
+          targetHeading: bus.heading,
+          currentLat: bus.latitude,
+          currentLng: bus.longitude,
+          currentHeading: bus.heading,
+          speed: bus.speed,
+          status: bus.status,
+          updateTime: perfNow,
+          duration: 1000,
+        });
+      } else {
+        const elapsed = perfNow - existingMotion.updateTime;
+        existingMotion.startLat = existingMotion.currentLat;
+        existingMotion.startLng = existingMotion.currentLng;
+        existingMotion.startHeading = existingMotion.currentHeading;
+
+        existingMotion.targetLat = bus.latitude;
+        existingMotion.targetLng = bus.longitude;
+        existingMotion.targetHeading = bus.heading;
+        existingMotion.speed = bus.speed;
+        existingMotion.status = bus.status;
+        existingMotion.duration = Math.max(400, elapsed);
+        existingMotion.updateTime = perfNow;
+      }
+
       let marker = busMarkers.current.get(bus.id);
       if (!marker) {
         marker = new maps.Marker({
@@ -340,8 +385,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
           icon,
           title: `${bus.bus_number} · Route ${bus.route_name}`,
           zIndex: selected ? 400 : 200,
-          // Unoptimised markers keep the rendered model crisp and give each bus
-          // its own element for hit testing.
           optimized: false,
         });
         marker.addListener('click', () => {
@@ -350,8 +393,6 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
         });
         busMarkers.current.set(bus.id, marker);
       } else {
-        marker.setPosition({ lat: bus.latitude, lng: bus.longitude });
-        marker.setIcon(icon);
         marker.setTitle(`${bus.bus_number} · Route ${bus.route_name}`);
         marker.setZIndex(selected ? 400 : 200);
       }
@@ -362,8 +403,101 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
       if (seen.has(id)) return;
       marker.setMap(null);
       busMarkers.current.delete(id);
+      busMotionStates.current.delete(id);
     });
   }, [ready, buses, layers.buses, selectedBusId, sprites, onSelectBus, onSelectEvent]);
+
+  /* ------------------------------------------------ 60 FPS Real-Time Motion Engine */
+  useEffect(() => {
+    if (!ready) return;
+
+    let animId: number;
+    let lastTime = performance.now();
+
+    const animateBusMotion = () => {
+      const now = performance.now();
+      const dtSeconds = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      const maps = (window as any).google?.maps as typeof google.maps | undefined;
+
+      buses.forEach((bus) => {
+        const state = busMotionStates.current.get(bus.id);
+        const marker = busMarkers.current.get(bus.id);
+        if (!state || !marker) return;
+
+        const elapsed = now - state.updateTime;
+        const progress = Math.min(1.0, elapsed / state.duration);
+
+        let curLat: number;
+        let curLng: number;
+        let curHeading: number;
+
+        if (progress < 1.0) {
+          // LERP Position
+          curLat = state.startLat + (state.targetLat - state.startLat) * progress;
+          curLng = state.startLng + (state.targetLng - state.startLng) * progress;
+
+          // Shortest-path Angle LERP Heading
+          const diffHeading = ((state.targetHeading - state.startHeading + 540) % 360) - 180;
+          curHeading = (state.startHeading + diffHeading * progress + 360) % 360;
+        } else {
+          // Dead Reckoning: Keep gliding along heading vector if bus is active & moving
+          if (state.status === 'ACTIVE' && state.speed > 0) {
+            const speedMps = (state.speed * 1000) / 3600;
+            const distMeters = speedMps * dtSeconds;
+            const headingRad = (state.targetHeading * Math.PI) / 180;
+
+            const dLat = (distMeters * Math.cos(headingRad)) / 111320;
+            const dLng =
+              (distMeters * Math.sin(headingRad)) /
+              (111320 * Math.cos((state.currentLat * Math.PI) / 180));
+
+            curLat = state.currentLat + dLat;
+            curLng = state.currentLng + dLng;
+            curHeading = state.targetHeading;
+          } else {
+            curLat = state.targetLat;
+            curLng = state.targetLng;
+            curHeading = state.targetHeading;
+          }
+        }
+
+        state.currentLat = curLat;
+        state.currentLng = curLng;
+        state.currentHeading = curHeading;
+
+        // Smoothly update marker position
+        marker.setPosition({ lat: curLat, lng: curLng });
+
+        // Smoothly update 360° vehicle sprite orientation frame
+        if (maps && sprites) {
+          const selected = bus.id === selectionRef.current.selectedBusId;
+          const sState = fleetState(bus, Date.now());
+          const variant: SpriteVariant = selected ? 'SELECTED' : sState;
+          const frames = sprites[variant];
+          const size = selected ? BUS_MARKER_PX_SELECTED : BUS_MARKER_PX;
+
+          if (frames) {
+            const frameIdx = headingFrame(curHeading);
+            marker.setIcon({
+              url: frames[frameIdx],
+              size: new maps.Size(SPRITE_PX, SPRITE_PX),
+              scaledSize: new maps.Size(size, size),
+              anchor: new maps.Point(size / 2, size / 2),
+            });
+          }
+        }
+      });
+
+      animId = requestAnimationFrame(animateBusMotion);
+    };
+
+    animId = requestAnimationFrame(animateBusMotion);
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [ready, buses, sprites]);
 
   /* -------------------------------------------------------- event markers */
   useEffect(() => {

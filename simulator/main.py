@@ -24,7 +24,7 @@ HOTSPOT_REPORT_CHANCE = 0.45
 OPPORTUNISTIC_CHANCE = 0.05
 
 
-def run_simulator(duration_seconds: int = 0, loop_interval: float = 2.0):
+def run_simulator(duration_seconds: int = 0, loop_interval: float = 1.0):
     """
     Runs the simulator continuously or for a fixed duration.
     If duration_seconds == 0, runs indefinitely.
