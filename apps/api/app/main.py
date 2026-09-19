@@ -5,6 +5,7 @@ from app.core.database import engine, Base, ensure_schema, SessionLocal
 from app.db.seed import seed_regional_fleet
 from app.api.endpoints.health import router as health_router
 from app.api.router import api_router
+from app.services import demo_feed
 
 from contextlib import asynccontextmanager
 import logging
@@ -21,7 +22,13 @@ async def lifespan(app: FastAPI):
             seed_regional_fleet(db)
     except Exception as e:
         logger.warning(f"Database table initialization warning: {e}")
-    yield
+
+    # Keeps a deployed demo live when no edge device or simulator is feeding it.
+    demo_feed.start()
+    try:
+        yield
+    finally:
+        demo_feed.stop()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

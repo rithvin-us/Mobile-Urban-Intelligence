@@ -11,6 +11,19 @@ Live environment for the SIH26124 Urban Intelligence platform.
 
 Both redeploy automatically on every push to `main`.
 
+## Keeping the map alive without a laptop
+
+Set `DEMO_MODE=1` on the Render service. The API then drives the same fleet
+from inside the container: buses keep moving and detections keep arriving with
+nothing running on anyone's machine. Tune it with `DEMO_STEP_SECONDS` (default
+3), `DEMO_FLEET_SIZE` (24) and `DEMO_EVENT_CAP` (4000, the point at which the
+oldest detections are pruned).
+
+It is off unless the flag is set, so real edge deployments never see it. Note
+that a free Render service still sleeps after 15 minutes without a visitor; the
+feed resumes when the next person opens the dashboard, a few seconds after the
+container wakes.
+
 ## Showing it to the team
 
 The deployed database only fills up while something is feeding it. Point the
