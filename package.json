@@ -1,0 +1,10 @@
+{
+  "name": "urban-intelligence-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint": "pnpm --recursive run lint"
+  }
+}

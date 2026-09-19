@@ -1,0 +1,33 @@
+# Node / Frontend
+node_modules/
+.next/
+out/
+build/
+dist/
+.pnpm-debug.log*
+*.log
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+env/
+*.db
+
+
+# Environment / Secrets
+.env
+.env.local
+.env.production
+*.pem
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
