@@ -105,7 +105,7 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn('flex border border-line bg-panel', className)}>
+    <div className={cn('flex border border-line/80 bg-panel/80 backdrop-blur-md rounded-lg overflow-hidden shadow-sm', className)}>
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -116,7 +116,7 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               'flex-1 px-2.5 py-[5px] text-[11px] transition-colors',
-              active ? 'bg-accent-soft text-ink' : 'text-dim hover:bg-hover hover:text-ink'
+              active ? 'bg-accent-soft/90 text-ink font-semibold' : 'text-dim hover:bg-hover/80 hover:text-ink'
             )}
           >
             {option.label}
@@ -164,9 +164,9 @@ export function ActionButton({
   title?: string;
 }) {
   const tones = {
-    neutral: 'border-line bg-raised text-dim hover:border-[#2B3947] hover:text-ink',
-    primary: 'border-accent-line bg-accent-soft text-ink hover:bg-[#233C55]',
-    ok: 'border-[#2C5844] bg-[#16281F] text-ok hover:bg-[#1B3226]',
+    neutral: 'border-line bg-raised/80 text-dim hover:border-accent-line hover:text-ink',
+    primary: 'border-accent-line bg-accent-soft/90 text-ink hover:bg-accent-soft',
+    ok: 'border-emerald-500/40 bg-emerald-950/40 text-ok hover:bg-emerald-950/60',
   } as const;
 
   return (
@@ -176,7 +176,7 @@ export function ActionButton({
       disabled={disabled}
       title={title}
       className={cn(
-        'flex-1 border px-2 py-[6px] text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+        'flex-1 border px-2 py-[6px] text-[11px] transition-colors rounded disabled:cursor-not-allowed disabled:opacity-40',
         tones[tone]
       )}
     >
@@ -196,7 +196,7 @@ export function FloatingPanel({
   return (
     <div
       className={cn(
-        'pointer-events-auto w-[268px] border border-line bg-panel/95 shadow-float backdrop-blur-sm',
+        'pointer-events-auto w-[275px] rounded-xl border border-line/80 bg-panel/80 shadow-2xl backdrop-blur-md overflow-hidden',
         className
       )}
     >

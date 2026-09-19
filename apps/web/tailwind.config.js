@@ -10,16 +10,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        canvas: "var(--canvas)",
-        panel: "var(--panel)",
-        raised: "var(--raised)",
-        hover: "var(--hover)",
-        line: "var(--line)",
-        "line-soft": "var(--line-soft)",
+        canvas: "rgb(var(--canvas-rgb) / <alpha-value>)",
+        panel: "rgb(var(--panel-rgb) / <alpha-value>)",
+        raised: "rgb(var(--raised-rgb) / <alpha-value>)",
+        hover: "rgb(var(--hover-rgb) / <alpha-value>)",
+        line: "rgb(var(--line-rgb) / <alpha-value>)",
+        "line-soft": "rgb(var(--line-soft-rgb) / <alpha-value>)",
 
-        ink: "var(--ink)",
-        dim: "var(--dim)",
-        faint: "var(--faint)",
+        ink: "rgb(var(--ink-rgb) / <alpha-value>)",
+        dim: "rgb(var(--dim-rgb) / <alpha-value>)",
+        faint: "rgb(var(--faint-rgb) / <alpha-value>)",
 
         accent: "var(--accent)",
         "accent-soft": "var(--accent-soft)",

@@ -23,7 +23,7 @@ export function QuickFilterBar({
   onResetFilters,
 }: QuickFilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-lg border border-line bg-panel/90 backdrop-blur shadow-sm">
+    <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl border border-line/80 bg-panel/75 backdrop-blur-md shadow-lg">
       <button
         type="button"
         onClick={onToggleCriticalOnly}

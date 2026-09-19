@@ -16,7 +16,7 @@ export function CriticalAlertBanner({ criticalEvent, now, onLocate, onDismiss }:
   if (!criticalEvent) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-rose-500/40 bg-rose-950/80 backdrop-blur text-xs text-rose-200 shadow-lg animate-pulse">
+    <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl border border-rose-500/50 bg-rose-950/70 text-xs text-rose-100 backdrop-blur-md shadow-xl animate-pulse">
       <div className="flex items-center gap-2">
         <AlertOctagon className="h-4 w-4 text-rose-400 shrink-0" />
         <div>

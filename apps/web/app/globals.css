@@ -4,20 +4,30 @@
 
 :root,
 .dark {
+  --canvas-rgb: 11, 15, 23;
+  --panel-rgb: 17, 24, 39;
+  --raised-rgb: 31, 41, 55;
+  --hover-rgb: 55, 65, 81;
+  --line-rgb: 255, 255, 255;
+  --line-soft-rgb: 255, 255, 255;
+  --ink-rgb: 249, 250, 251;
+  --dim-rgb: 156, 163, 175;
+  --faint-rgb: 107, 114, 128;
+
   --canvas: #0B0F17;
-  --panel: #111827;
-  --raised: #1F2937;
-  --hover: #374151;
-  --line: #1F2937;
-  --line-soft: #111827;
+  --panel: rgba(17, 24, 39, 0.78);
+  --raised: rgba(31, 41, 55, 0.72);
+  --hover: rgba(55, 65, 81, 0.75);
+  --line: rgba(255, 255, 255, 0.14);
+  --line-soft: rgba(255, 255, 255, 0.08);
 
   --ink: #F9FAFB;
   --dim: #9CA3AF;
   --faint: #6B7280;
 
   --accent: #38BDF8;
-  --accent-soft: rgba(56, 189, 248, 0.12);
-  --accent-line: rgba(56, 189, 248, 0.28);
+  --accent-soft: rgba(56, 189, 248, 0.15);
+  --accent-line: rgba(56, 189, 248, 0.32);
 
   --ok: #10B981;
   --warn: #F59E0B;
@@ -26,20 +36,30 @@
 }
 
 .light {
+  --canvas-rgb: 248, 250, 252;
+  --panel-rgb: 255, 255, 255;
+  --raised-rgb: 241, 245, 249;
+  --hover-rgb: 226, 232, 240;
+  --line-rgb: 0, 0, 0;
+  --line-soft-rgb: 0, 0, 0;
+  --ink-rgb: 15, 23, 42;
+  --dim-rgb: 71, 85, 105;
+  --faint-rgb: 100, 116, 139;
+
   --canvas: #F8FAFC;
-  --panel: #FFFFFF;
-  --raised: #F1F5F9;
-  --hover: #E2E8F0;
-  --line: #E2E8F0;
-  --line-soft: #F8FAFC;
+  --panel: rgba(255, 255, 255, 0.78);
+  --raised: rgba(241, 245, 249, 0.78);
+  --hover: rgba(226, 232, 240, 0.85);
+  --line: rgba(0, 0, 0, 0.12);
+  --line-soft: rgba(0, 0, 0, 0.06);
 
   --ink: #0F172A;
   --dim: #475569;
   --faint: #64748B;
 
   --accent: #0284C7;
-  --accent-soft: #EFF6FF;
-  --accent-line: #BFDBFE;
+  --accent-soft: rgba(2, 132, 199, 0.12);
+  --accent-line: rgba(2, 132, 199, 0.30);
 
   --ok: #059669;
   --warn: #D97706;

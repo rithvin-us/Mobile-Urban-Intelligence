@@ -50,12 +50,12 @@ function IconToggle({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex h-7 w-7 items-center justify-center border transition-colors',
+        'flex h-7 w-7 items-center justify-center border transition-all rounded shadow-sm backdrop-blur-md',
         disabled
-          ? 'cursor-not-allowed border-line bg-panel text-faint opacity-40'
+          ? 'cursor-not-allowed border-line/60 bg-panel/60 text-faint opacity-40'
           : active
-          ? 'border-accent-line bg-accent-soft text-accent'
-          : 'border-line bg-panel text-dim hover:text-ink'
+          ? 'border-accent-line bg-accent-soft/90 text-accent shadow-md'
+          : 'border-line/80 bg-panel/80 text-dim hover:bg-hover/80 hover:text-ink'
       )}
     >
       {children}
@@ -78,7 +78,7 @@ function MapButton({
       aria-label={label}
       title={label}
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center border border-line bg-panel text-dim transition-colors hover:text-ink"
+      className="flex h-7 w-7 items-center justify-center border border-line/80 bg-panel/80 backdrop-blur-md rounded shadow-sm text-dim transition-all hover:bg-hover/80 hover:text-ink"
     >
       {children}
     </button>
