@@ -21,15 +21,41 @@ export function loadGoogleMaps(): Promise<typeof google.maps> {
   if (!key) return Promise.reject(new Error('Missing NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'));
 
   loaderPromise = new Promise((resolve, reject) => {
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
-    const onLoad = () => {
-      if (anyWindow.google?.maps) resolve(anyWindow.google.maps);
-      else reject(new Error('Google Maps loaded without a maps namespace'));
+    // Another component (or a second copy of the script) can swallow the load
+    // event, so the namespace is polled as well, and a script that never
+    // arrives at all reports instead of leaving the map area silently blank.
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearInterval(poll);
+      clearTimeout(timeout);
+      fn();
     };
+
+    const poll = setInterval(() => {
+      if (anyWindow.google?.maps) finish(() => resolve(anyWindow.google.maps));
+    }, 150);
+
+    const timeout = setTimeout(() => {
+      finish(() => {
+        loaderPromise = null;
+        reject(new Error('Google Maps did not finish loading. Check the API key and the network.'));
+      });
+    }, 20000);
+
+    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+    const onLoad = () =>
+      finish(() => {
+        if (anyWindow.google?.maps) resolve(anyWindow.google.maps);
+        else reject(new Error('Google Maps loaded without a maps namespace'));
+      });
 
     if (existing) {
       existing.addEventListener('load', onLoad);
-      existing.addEventListener('error', () => reject(new Error('Google Maps failed to load')));
+      existing.addEventListener('error', () =>
+        finish(() => reject(new Error('Google Maps failed to load')))
+      );
       return;
     }
 
@@ -39,10 +65,12 @@ export function loadGoogleMaps(): Promise<typeof google.maps> {
     script.async = true;
     script.defer = true;
     script.addEventListener('load', onLoad);
-    script.addEventListener('error', () => {
-      loaderPromise = null;
-      reject(new Error('Google Maps failed to load'));
-    });
+    script.addEventListener('error', () =>
+      finish(() => {
+        loaderPromise = null;
+        reject(new Error('Google Maps failed to load'));
+      })
+    );
     document.head.appendChild(script);
   });
 

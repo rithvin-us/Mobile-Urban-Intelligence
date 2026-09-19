@@ -112,7 +112,11 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
 
     loadGoogleMaps()
       .then((maps) => {
-        if (cancelled || !containerRef.current || mapRef.current) return;
+        if (cancelled || mapRef.current) return;
+        if (!containerRef.current) {
+          setLoadError('The map container disappeared before the map could start.');
+          return;
+        }
 
         const map = new maps.Map(containerRef.current, {
           center: CITY_CENTER,
@@ -150,6 +154,7 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
         onReady?.();
       })
       .catch((err: Error) => {
+        // Surfaced in the map area so a failed basemap is never a silent blank.
         if (!cancelled) setLoadError(err.message);
       });
 

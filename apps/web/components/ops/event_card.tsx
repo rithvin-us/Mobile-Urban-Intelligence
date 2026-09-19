@@ -46,7 +46,7 @@ export function EventCard({
   onSelectBus,
   now,
 }: EventCardProps) {
-  const place = usePlaceName(event.latitude, event.longitude);
+  const place = usePlaceName(event.latitude, event.longitude, true, true);
   const meta = eventMetadata(event);
   const busNumber = reportingBus?.bus_number ?? meta.bus_number ?? event.bus_id;
   const sightings = cluster?.sightings ?? 1;

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 
 import type {
   Bus,
@@ -37,7 +38,11 @@ import {
 } from '@/components/ops/right_panel';
 import { TopBar } from '@/components/ops/top_bar';
 
-import { BusTelemetryModal } from '@/components/dashboard/bus_telemetry_modal';
+// The 3D twin pulls in a WebGL renderer, so it loads only when opened.
+const BusTelemetryModal = dynamic(
+  () => import('@/components/dashboard/bus_telemetry_modal').then((m) => m.BusTelemetryModal),
+  { ssr: false }
+);
 
 const BUS_POLL_MS = 2000;
 const EVENT_POLL_MS = 4000;
@@ -127,13 +132,22 @@ export default function DashboardPage() {
     radarTileTemplate().then(setRadarTemplate);
   }, []);
 
-  // Narrow screens start with the map alone; panels open over it on demand.
+  // Narrow screens show the map alone; the panels open over it on demand, and
+  // both fold away again whenever the window drops below the two-panel width.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.innerWidth < 1024) {
+
+    const narrow = window.matchMedia('(max-width: 1023px)');
+    const apply = (isNarrow: boolean) => {
+      if (!isNarrow) return;
       setLeftCollapsed(true);
       setRightCollapsed(true);
-    }
+    };
+
+    apply(narrow.matches);
+    const onChange = (event: MediaQueryListEvent) => apply(event.matches);
+    narrow.addEventListener('change', onChange);
+    return () => narrow.removeEventListener('change', onChange);
   }, []);
 
   useEffect(() => {

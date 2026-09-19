@@ -33,14 +33,16 @@ function coordinateText(lat: number, lng: number): string {
   return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 }
 
-function budgetAvailable(): boolean {
+function budgetAvailable(priority: boolean): boolean {
   const now = Date.now();
   if (now < pausedUntil) return false;
   if (now - windowStart > 60_000) {
     windowStart = now;
     windowCount = 0;
   }
-  return windowCount < MAX_PER_MINUTE;
+  // What the operator has open is worth a lookup even when the list has used
+  // up the minute's budget.
+  return windowCount < (priority ? MAX_PER_MINUTE + 6 : MAX_PER_MINUTE);
 }
 
 function pickPlaceName(results: google.maps.GeocoderResult[]): string | null {
@@ -64,7 +66,7 @@ function pickPlaceName(results: google.maps.GeocoderResult[]): string | null {
 }
 
 /** Resolves a coordinate to a street-level description, or the coordinate itself. */
-export function reverseGeocode(lat: number, lng: number): Promise<string> {
+export function reverseGeocode(lat: number, lng: number, priority = false): Promise<string> {
   const key = tileKey(lat, lng);
   const cached = cache.get(key);
   if (cached) return Promise.resolve(cached);
@@ -72,7 +74,7 @@ export function reverseGeocode(lat: number, lng: number): Promise<string> {
   const inFlight = pending.get(key);
   if (inFlight) return inFlight;
 
-  if (!budgetAvailable()) return Promise.resolve(coordinateText(lat, lng));
+  if (!budgetAvailable(priority)) return Promise.resolve(coordinateText(lat, lng));
 
   windowCount += 1;
 

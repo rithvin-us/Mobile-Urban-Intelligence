@@ -9,7 +9,8 @@ import { cachedPlaceName, reverseGeocode } from '@/lib/geocode';
 export function usePlaceName(
   lat: number | null | undefined,
   lng: number | null | undefined,
-  enabled = true
+  enabled = true,
+  priority = false
 ): string {
   const fallback =
     lat === null || lat === undefined || lng === null || lng === undefined
@@ -33,14 +34,14 @@ export function usePlaceName(
 
     let active = true;
     setName(`${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-    reverseGeocode(lat, lng).then((resolved) => {
+    reverseGeocode(lat, lng, priority).then((resolved) => {
       if (active) setName(resolved);
     });
 
     return () => {
       active = false;
     };
-  }, [lat, lng, enabled]);
+  }, [lat, lng, enabled, priority]);
 
   return name;
 }

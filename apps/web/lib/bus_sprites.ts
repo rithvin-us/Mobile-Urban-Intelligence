@@ -22,7 +22,28 @@ const RING: Record<SpriteVariant, { ring: string; glow: string }> = {
   SELECTED: { ring: '#EAF2FA', glow: 'rgba(234,242,250,0.34)' },
 };
 
+const CACHE_KEY = 'bus-sprites-v1';
+
 let buildPromise: Promise<Record<SpriteVariant, SpriteSet> | null> | null = null;
+
+function readCache(): Record<SpriteVariant, SpriteSet> | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.ACTIVE?.length === SPRITE_STEPS ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(frames: Record<SpriteVariant, SpriteSet>) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(frames));
+  } catch {
+    // Storage is optional; the sprites simply get rebuilt next time.
+  }
+}
 
 export function headingFrame(heading: number): number {
   const normalised = ((heading % 360) + 360) % 360;
@@ -61,6 +82,9 @@ function composite(model: HTMLCanvasElement, variant: SpriteVariant): string {
 
 async function build(): Promise<Record<SpriteVariant, SpriteSet> | null> {
   if (typeof window === 'undefined') return null;
+
+  const cached = readCache();
+  if (cached) return cached;
 
   try {
     const THREE = await import('three');
@@ -143,7 +167,14 @@ async function build(): Promise<Record<SpriteVariant, SpriteSet> | null> {
       }
     }
 
+    // Hand the WebGL context back straight away: the sprites are plain images
+    // from here on, and a page does not need to hold a live context open.
     renderer.dispose();
+    renderer.forceContextLoss();
+    renderer.domElement.width = 1;
+    renderer.domElement.height = 1;
+
+    writeCache(frames);
     return frames;
   } catch (err) {
     (window as any).__busSpriteError = err instanceof Error ? err.message : String(err);

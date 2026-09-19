@@ -32,7 +32,7 @@ interface BusCardProps {
 
 export function BusCard({ bus, events, onClose, onCenter, onOpen3DView, onSelectEvent, now }: BusCardProps) {
   const state = fleetState(bus, now);
-  const place = usePlaceName(bus.latitude, bus.longitude);
+  const place = usePlaceName(bus.latitude, bus.longitude, true, true);
   const recent = events.slice(0, 3);
 
   return (

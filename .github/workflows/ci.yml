@@ -61,11 +61,13 @@ jobs:
 
       - name: Execute Pytest Test Suite
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/urban_intelligence_test
+          PYTHONPATH: apps/api:.
+          DATABASE_URL: sqlite:///./test.db
           REDIS_URL: redis://localhost:6379/0
         run: |
           cd apps/api
           python -m pytest --cov=app --cov-report=term-missing
+
 
   # -------------------------------------------------------------
   # Job 2: Frontend Next.js Type Check & Production Build
