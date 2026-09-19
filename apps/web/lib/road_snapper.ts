@@ -74,6 +74,9 @@ export async function getSnappedRoutePath(
  * Snaps any (lat, lng) coordinate to the closest point on a road polyline.
  * Prevents buses from ever straying off the road.
  */
+/** Maximum distance in meters a coordinate can be snapped to a road polyline. */
+const MAX_SNAP_DISTANCE_METERS = 500;
+
 export function snapCoordinateToPolyline(
   lat: number,
   lng: number,
@@ -100,6 +103,11 @@ export function snapCoordinateToPolyline(
       bestPoint = projected;
       bestHeading = calculateHeading(p1.lat, p1.lng, p2.lat, p2.lng);
     }
+  }
+
+  // If closest polyline segment is further than 500m, do not warp coordinate across city!
+  if (minDistance > MAX_SNAP_DISTANCE_METERS) {
+    return { lat, lng, heading: bestHeading };
   }
 
   return { lat: bestPoint.lat, lng: bestPoint.lng, heading: bestHeading };

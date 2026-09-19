@@ -114,17 +114,17 @@ export default function DashboardPage() {
 
     const loadBuses = async () => {
       const next = await fetchBuses();
-      if (!alive) return;
+      if (!alive || !next) return;
       setBuses(next);
       setLastSync(Date.now());
     };
     const loadEvents = async () => {
       const next = await fetchEvents();
-      if (alive) setEvents(next);
+      if (alive && next) setEvents(next);
     };
     const loadHealth = async () => {
       const next = await fetchSystemHealth();
-      if (alive) setHealth(next);
+      if (alive && next) setHealth(next);
     };
 
     loadBuses();
@@ -344,7 +344,7 @@ export default function DashboardPage() {
         );
       } else {
         const fresh = await fetchEvents();
-        setEvents(fresh);
+        setEvents(fresh ?? []);
       }
       setPendingEventId(null);
     },
