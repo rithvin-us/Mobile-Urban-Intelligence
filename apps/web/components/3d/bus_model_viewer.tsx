@@ -202,8 +202,50 @@ export const BusModelViewer: React.FC<BusModelViewerProps> = ({
       },
       undefined,
       (err) => {
-        console.error('Error loading 3D Bharat Bus model:', err);
-        setError('Failed to load 3D Bharat Bus GLB model.');
+        console.warn('GLB model failed to load, generating procedural 3D Bharat Bus fallback:', err);
+        // Build Procedural 3D Bus Fallback
+        const fallbackGroup = new THREE.Group();
+        
+        // Chassis Body
+        const bodyGeo = new THREE.BoxGeometry(2.4, 1.8, 6.0);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, metalness: 0.3, roughness: 0.2 });
+        const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+        bodyMesh.position.set(0, 1.3, 0);
+        fallbackGroup.add(bodyMesh);
+
+        // Windshield & Windows
+        const glassGeo = new THREE.BoxGeometry(2.3, 0.8, 5.8);
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6, roughness: 0.1 });
+        const glassMesh = new THREE.Mesh(glassGeo, glassMat);
+        glassMesh.position.set(0, 1.7, 0);
+        fallbackGroup.add(glassMesh);
+
+        // Wheels
+        const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.3, 24);
+        const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+        
+        const wheelPositions = [
+          [-1.2, 0.45, 1.8], [1.2, 0.45, 1.8],
+          [-1.2, 0.45, -1.8], [1.2, 0.45, -1.8]
+        ];
+        
+        wheelPositions.forEach(([x, y, z]) => {
+          const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(x, y, z);
+          fallbackGroup.add(wheel);
+        });
+
+        modelGroupRef.current = fallbackGroup;
+        scene.add(fallbackGroup);
+
+        const box = new THREE.Box3().setFromObject(fallbackGroup);
+        const size = box.getSize(new THREE.Vector3());
+        camera.position.set(6, 4, 7);
+        controls.target.set(0, size.y * 0.5, 0);
+        controls.update();
+
+        renderHotspots();
         setLoading(false);
       }
     );
@@ -233,20 +275,32 @@ export const BusModelViewer: React.FC<BusModelViewerProps> = ({
     };
     animate();
 
-    // Resize Handler
-    const handleResize = () => {
+    // Resize Handler with ResizeObserver
+    const updateSize = () => {
       if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight;
+      const w = containerRef.current.clientWidth || 300;
+      const h = containerRef.current.clientHeight || 200;
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(w, h);
+      rendererRef.current.setSize(w, h, false);
     };
 
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Trigger initial resize after tick
+    const resizeTimer = setTimeout(updateSize, 50);
+    window.addEventListener('resize', updateSize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', updateSize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
       renderer.dispose();
     };

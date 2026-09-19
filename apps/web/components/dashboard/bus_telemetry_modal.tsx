@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Bus, DetectionEvent } from '@/types';
 import { BusModelViewer } from '@/components/3d/bus_model_viewer';
-import { X, Navigation, Gauge, AlertTriangle, ExternalLink, Video, Box, Cpu } from 'lucide-react';
+import { BusStreetView } from '@/components/dashboard/bus_street_view';
+import { X, Navigation, Gauge, AlertTriangle, ExternalLink, Video, Box, Cpu, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface BusTelemetryModalProps {
@@ -14,7 +15,7 @@ interface BusTelemetryModalProps {
 }
 
 export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, events, onClose }) => {
-  const [viewMode, setViewMode] = useState<'3d' | 'camera'>('3d');
+  const [viewMode, setViewMode] = useState<'3d' | 'camera' | 'street'>('3d');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const busId = bus?.bus_id || bus?.id;
@@ -154,7 +155,7 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
           </button>
         </div>
 
-        {/* Viewport Area: Toggleable between 3D Model and Live AI Camera Feed */}
+        {/* Viewport Area: Toggleable between 3D Model, Live AI Camera Feed, and Street View */}
         <div className="relative w-full h-[190px] bg-slate-950 border-b border-slate-800/80">
           
           {/* Top Left Toggle Pills */}
@@ -182,6 +183,18 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               <Video className="h-3 w-3" />
               <span>Live Feed</span>
             </button>
+
+            <button
+              onClick={() => setViewMode('street')}
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                viewMode === 'street'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <MapPin className="h-3 w-3" />
+              <span>Street View</span>
+            </button>
           </div>
 
           {/* Top Right Speed Indicator */}
@@ -200,10 +213,17 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               interactiveHotspots={false}
               className="w-full h-full"
             />
-          ) : (
+          ) : viewMode === 'camera' ? (
             <div className="w-full h-full relative overflow-hidden bg-slate-950">
               <canvas ref={canvasRef} width={420} height={190} className="w-full h-full object-cover" />
             </div>
+          ) : (
+            <BusStreetView
+              latitude={bus.latitude}
+              longitude={bus.longitude}
+              heading={bus.heading}
+              className="w-full h-full"
+            />
           )}
         </div>
 

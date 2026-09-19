@@ -209,15 +209,14 @@ export const OpsMap = forwardRef<MapHandle, OpsMapProps>(function OpsMap(
     const map = mapRef.current;
     if (!map) return;
 
-    const tiltable = mapStyle !== 'streets';
-    if (options.threeD && tiltable) {
-      if ((map.getZoom() ?? 0) < TILT_MIN_ZOOM) map.setZoom(TILT_MIN_ZOOM);
-      map.setOptions({ rotateControl: true });
+    if (options.threeD) {
+      if ((map.getZoom() ?? 0) < 15) map.setZoom(16);
+      map.setOptions({ rotateControl: true, streetViewControl: true });
       map.setTilt(45);
     } else {
       map.setTilt(0);
       map.setHeading(0);
-      map.setOptions({ rotateControl: false });
+      map.setOptions({ rotateControl: false, streetViewControl: true });
     }
   }, [ready, options.threeD, mapStyle]);
 
