@@ -1,0 +1,3 @@
+Annotated camera frames posted by the edge units land here at runtime.
+The directory is tracked so the static mount exists in a fresh container;
+its contents are not.

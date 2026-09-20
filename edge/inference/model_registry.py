@@ -43,3 +43,20 @@ class MockDetector(BaseDetector):
 
 # Register mock detector by default
 ModelRegistry._registry["mock"] = MockDetector
+
+
+def _register_builtin_detectors() -> None:
+    """
+    Imports the detectors that register themselves by decorator.
+
+    Without this, `ModelRegistry.create("multilabel_yolo")` only worked if the
+    caller happened to have imported the module first, so the registry raised
+    "Unknown detector model type" depending on import order.
+    """
+    try:
+        import edge.inference.multilabel_detector  # noqa: F401
+    except Exception as exc:  # pragma: no cover - depends on optional deps
+        logger.debug("Multilabel detector unavailable: %s", exc)
+
+
+_register_builtin_detectors()

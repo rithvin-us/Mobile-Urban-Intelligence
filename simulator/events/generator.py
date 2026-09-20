@@ -29,13 +29,13 @@ OPPORTUNISTIC_TYPES = [
 SEVERITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 EVIDENCE_TEMPLATES = {
-    "POTHOLE": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/pothole_sample.jpg",
-    "ROAD_DAMAGE": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/road_damage_sample.jpg",
-    "WATERLOGGING": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/waterlogging_sample.jpg",
-    "INCIDENT": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/incident_sample.jpg",
+    "POTHOLE": "/evidence/pothole_sample.jpg",
+    "ROAD_DAMAGE": "/evidence/road_damage_sample.jpg",
+    "WATERLOGGING": "/evidence/waterlogging_sample.jpg",
+    "INCIDENT": "/evidence/incident_sample.jpg",
 }
 
-DEFAULT_EVIDENCE = "https://storage.googleapis.com/sih26124-urban-sensing/evidence/default_sample.jpg"
+DEFAULT_EVIDENCE = "/evidence/default_sample.jpg"
 
 
 def _weighted_event_type() -> str:

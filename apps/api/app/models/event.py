@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Float, DateTime, JSON
+from sqlalchemy import Column, String, Float, DateTime, JSON, Text
 from app.core.database import Base
 
 class Event(Base):
@@ -15,7 +15,9 @@ class Event(Base):
     longitude = Column(Float, nullable=False)
     timestamp = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     status = Column(String(20), nullable=False, default="NEW")
-    evidence_url = Column(String(500), nullable=True)
+    # Text, not VARCHAR(500): an edge unit can hand us a long signed object
+    # URL, and Postgres raises StringDataRightTruncation rather than trimming.
+    evidence_url = Column(Text, nullable=True)
     acknowledged_at = Column(DateTime, nullable=True)
     resolved_at = Column(DateTime, nullable=True)
     metadata_payload = Column("metadata_payload", JSON, nullable=True)

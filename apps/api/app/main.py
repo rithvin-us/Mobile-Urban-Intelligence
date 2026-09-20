@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import engine, Base, ensure_schema, SessionLocal
 from app.db.seed import seed_regional_fleet
 from app.api.endpoints.health import router as health_router
 from app.api.router import api_router
 from app.services import demo_feed
+from app.services.evidence_store import EVIDENCE_DIR, EVIDENCE_ROUTE, ensure_dir
 
 from contextlib import asynccontextmanager
 import logging
@@ -50,6 +52,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Annotated camera frames posted by the edge units are written here and served
+# back as ordinary cacheable images.
+ensure_dir()
+app.mount(EVIDENCE_ROUTE, StaticFiles(directory=str(EVIDENCE_DIR)), name="evidence")
 
 # Include Routers
 app.include_router(health_router)

@@ -4,6 +4,31 @@ const SCRIPT_ID = 'google-maps-js';
 
 let loaderPromise: Promise<typeof google.maps> | null = null;
 
+/**
+ * Google reports a rejected key by calling this global and then drawing a grey
+ * box, which is indistinguishable from a slow network. Recording it lets the
+ * map say what is actually wrong instead of showing an empty canvas.
+ */
+let authFailure = false;
+const authListeners = new Set<() => void>();
+
+export function mapsAuthFailed(): boolean {
+  return authFailure;
+}
+
+export function onMapsAuthFailure(listener: () => void): () => void {
+  authListeners.add(listener);
+  if (authFailure) listener();
+  return () => authListeners.delete(listener);
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).gm_authFailure = () => {
+    authFailure = true;
+    authListeners.forEach((listener) => listener());
+  };
+}
+
 export function mapsApiKey(): string {
   return process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 }

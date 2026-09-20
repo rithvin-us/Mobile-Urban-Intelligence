@@ -39,6 +39,14 @@ ADDITIVE_COLUMNS = {
 }
 
 
+# Columns whose type outgrew its first definition. Postgres enforces VARCHAR
+# length, so an evidence path longer than 500 characters would abort the
+# insert on an existing deployment until the column is widened in place.
+WIDENED_COLUMNS = {
+    "events": {"evidence_url": "TEXT"},
+}
+
+
 def ensure_schema() -> None:
     inspector = inspect(engine)
     existing_tables = set(inspector.get_table_names())
@@ -56,3 +64,20 @@ def ensure_schema() -> None:
                 logger.info("Added column %s.%s", table, column)
             except Exception as exc:
                 logger.warning("Could not add column %s.%s: %s", table, column, exc)
+
+    if not engine.url.drivername.startswith("postgresql"):
+        # SQLite ignores VARCHAR length, so there is nothing to widen.
+        return
+
+    for table, columns in WIDENED_COLUMNS.items():
+        if table not in existing_tables:
+            continue
+        for column, ddl in columns.items():
+            try:
+                with engine.begin() as conn:
+                    conn.execute(
+                        text(f"ALTER TABLE {table} ALTER COLUMN {column} TYPE {ddl}")
+                    )
+                logger.info("Widened column %s.%s to %s", table, column, ddl)
+            except Exception as exc:
+                logger.warning("Could not widen column %s.%s: %s", table, column, exc)

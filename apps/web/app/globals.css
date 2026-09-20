@@ -2,69 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Night road survey.
+ *
+ * The console sits on top of a live map, so every surface is glass over
+ * asphalt. Colour carries meaning and nothing else: road-marking yellow is
+ * reserved for "this is the thing you selected / this is live", and the
+ * severity ramp is the only other saturated colour on screen.
+ */
+
 :root,
 .dark {
-  --canvas-rgb: 11, 15, 23;
-  --panel-rgb: 17, 24, 39;
-  --raised-rgb: 31, 41, 55;
-  --hover-rgb: 55, 65, 81;
-  --line-rgb: 255, 255, 255;
-  --line-soft-rgb: 255, 255, 255;
-  --ink-rgb: 249, 250, 251;
-  --dim-rgb: 156, 163, 175;
-  --faint-rgb: 107, 114, 128;
+  --canvas-rgb: 14, 18, 22;
+  --panel-rgb: 20, 25, 31;
+  --raised-rgb: 31, 38, 46;
+  --hover-rgb: 48, 57, 67;
+  --line-rgb: 232, 236, 240;
+  --line-soft-rgb: 232, 236, 240;
+  --ink-rgb: 232, 236, 240;
+  --dim-rgb: 152, 163, 173;
+  --faint-rgb: 106, 118, 129;
 
-  --canvas: #0B0F17;
-  --panel: rgba(17, 24, 39, 0.78);
-  --raised: rgba(31, 41, 55, 0.72);
-  --hover: rgba(55, 65, 81, 0.75);
-  --line: rgba(255, 255, 255, 0.14);
-  --line-soft: rgba(255, 255, 255, 0.08);
+  --canvas: #0E1216;
+  --panel: rgba(20, 25, 31, 0.74);
+  --panel-solid: #141920;
+  --raised: rgba(31, 38, 46, 0.70);
+  --hover: rgba(48, 57, 67, 0.72);
+  --line: rgba(232, 236, 240, 0.13);
+  --line-soft: rgba(232, 236, 240, 0.07);
+  --edge-light: rgba(255, 255, 255, 0.07);
 
-  --ink: #F9FAFB;
-  --dim: #9CA3AF;
-  --faint: #6B7280;
+  --ink: #E8ECF0;
+  --dim: #98A3AD;
+  --faint: #6A7681;
 
-  --accent: #38BDF8;
-  --accent-soft: rgba(56, 189, 248, 0.15);
-  --accent-line: rgba(56, 189, 248, 0.32);
+  --accent: #F0B429;
+  --accent-soft: rgba(240, 180, 41, 0.15);
+  --accent-line: rgba(240, 180, 41, 0.34);
 
-  --ok: #10B981;
-  --warn: #F59E0B;
-  --crit: #EF4444;
-  --water: #06B6D4;
+  --ok: #3FA97B;
+  --warn: #D9932B;
+  --crit: #E04A46;
+  --water: #3E9EBC;
+
+  --glass-blur: 16px;
+  --shadow-float: 0 18px 44px -20px rgba(0, 0, 0, 0.85), 0 2px 8px -4px rgba(0, 0, 0, 0.6);
 }
 
 .light {
-  --canvas-rgb: 248, 250, 252;
-  --panel-rgb: 255, 255, 255;
-  --raised-rgb: 241, 245, 249;
-  --hover-rgb: 226, 232, 240;
-  --line-rgb: 0, 0, 0;
-  --line-soft-rgb: 0, 0, 0;
-  --ink-rgb: 15, 23, 42;
-  --dim-rgb: 71, 85, 105;
-  --faint-rgb: 100, 116, 139;
+  --canvas-rgb: 233, 234, 229;
+  --panel-rgb: 252, 252, 250;
+  --raised-rgb: 240, 240, 236;
+  --hover-rgb: 221, 222, 216;
+  --line-rgb: 23, 27, 31;
+  --line-soft-rgb: 23, 27, 31;
+  --ink-rgb: 23, 27, 31;
+  --dim-rgb: 88, 97, 105;
+  --faint-rgb: 122, 131, 139;
 
-  --canvas: #F8FAFC;
-  --panel: rgba(255, 255, 255, 0.78);
-  --raised: rgba(241, 245, 249, 0.78);
-  --hover: rgba(226, 232, 240, 0.85);
-  --line: rgba(0, 0, 0, 0.12);
-  --line-soft: rgba(0, 0, 0, 0.06);
+  --canvas: #E9EAE5;
+  --panel: rgba(252, 252, 250, 0.86);
+  --panel-solid: #FCFCFA;
+  --raised: rgba(240, 240, 236, 0.86);
+  --hover: rgba(221, 222, 216, 0.9);
+  --line: rgba(23, 27, 31, 0.14);
+  --line-soft: rgba(23, 27, 31, 0.07);
+  --edge-light: rgba(255, 255, 255, 0.85);
 
-  --ink: #0F172A;
-  --dim: #475569;
-  --faint: #64748B;
+  --ink: #171B1F;
+  --dim: #586169;
+  --faint: #7A838B;
 
-  --accent: #0284C7;
-  --accent-soft: rgba(2, 132, 199, 0.12);
-  --accent-line: rgba(2, 132, 199, 0.30);
+  --accent: #9A6A06;
+  --accent-soft: rgba(154, 106, 6, 0.13);
+  --accent-line: rgba(154, 106, 6, 0.32);
 
-  --ok: #059669;
-  --warn: #D97706;
-  --crit: #DC2626;
-  --water: #0891B2;
+  --ok: #2E7D5B;
+  --warn: #A66C12;
+  --crit: #C03A36;
+  --water: #2C7B93;
+
+  --shadow-float: 0 16px 38px -20px rgba(23, 27, 31, 0.42), 0 2px 6px -3px rgba(23, 27, 31, 0.18);
 }
 
 html,
@@ -75,8 +93,10 @@ body {
 body {
   background: var(--canvas);
   color: var(--ink);
-  font-family: Inter, 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui), 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -86,6 +106,31 @@ body {
 .tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
+}
+
+/*
+ * Glass shell. One class so every floating surface picks up the same blur,
+ * hairline and inner top highlight — the highlight is what stops a translucent
+ * panel from dissolving into bright satellite imagery.
+ */
+.glass {
+  background: var(--panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-float), inset 0 1px 0 0 var(--edge-light);
+}
+
+.glass-sunken {
+  background: var(--raised);
+  border: 1px solid var(--line-soft);
+}
+
+/* A browser without backdrop-filter would render unreadable transparency. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--panel-solid);
+  }
 }
 
 /* Thin scrollbars so dense lists do not lose width to chrome. */
@@ -111,9 +156,10 @@ body {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+  border-radius: 3px;
 }
 
-/* Google Maps chrome, retoned for the dark console. */
+/* Google Maps chrome, retoned for the console. */
 .gm-style .gm-style-iw-c,
 .gm-style .gm-style-iw-t::after {
   display: none;
@@ -128,6 +174,41 @@ body {
   font-size: 10px !important;
 }
 
+/*
+ * Google's "zoom level not supported" tile toast is noise on a tilted view, so
+ * it stays hidden. Its authentication dialog does NOT: hiding that turned a key,
+ * billing or referrer failure into a silently blank map with no way to tell it
+ * apart from a slow network. The map component reports that case itself now.
+ */
+.gm-style-pbc {
+  display: none !important;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.pulse-dot {
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+
+/* The one piece of non-user-triggered motion: a critical detection arriving. */
+@keyframes alert-enter {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.alert-enter {
+  animation: alert-enter 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes panel-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.panel-enter {
+  animation: panel-enter 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -137,22 +218,3 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-.pulse-dot {
-  animation: pulse-dot 2.4s ease-in-out infinite;
-}
-
-/* Suppress Google Maps tile error overlays ("Zoom Level Not Supported" & Auth Dialogs) */
-.gm-err-container,
-.gm-err-content,
-.gm-err-icon,
-.gm-err-message,
-.gm-style-pbc,
-div[aria-modal="true"]:has(.gm-err-message) {
-  display: none !important;
-}
-

@@ -124,24 +124,24 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
   if (!bus) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
       {/* Small, Compact Popup Container */}
-      <div className="relative w-full max-w-md bg-slate-900/95 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden text-slate-100 flex flex-col">
+      <div className="relative w-full max-w-md glass rounded-2xl shadow-2xl overflow-hidden text-ink flex flex-col">
         
         {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-slate-950/60">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-line bg-raised">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
               <Navigation className="h-4 w-4" style={{ transform: `rotate(${bus.heading}deg)` }} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white tracking-tight">{bus.bus_number}</h3>
+                <h3 className="text-sm font-bold text-ink tracking-tight">{bus.bus_number}</h3>
                 <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-[10px] px-1.5 py-0">
                   {bus.status}
                 </Badge>
               </div>
-              <p className="text-[11px] text-slate-400 truncate max-w-[200px]">
+              <p className="text-[11px] text-faint truncate max-w-[200px]">
                 {bus.route_name}
               </p>
             </div>
@@ -149,23 +149,23 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 transition"
+            className="p-1.5 rounded-lg bg-raised text-faint hover:text-ink hover:bg-hover transition"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Viewport Area: Toggleable between 3D Model, Live AI Camera Feed, and Street View */}
-        <div className="relative w-full h-[190px] bg-slate-950 border-b border-slate-800/80">
+        <div className="relative w-full h-[190px] bg-canvas border-b border-line">
           
           {/* Top Left Toggle Pills */}
-          <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-slate-900/90 backdrop-blur p-1 rounded-lg border border-slate-800 shadow-md">
+          <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-panel backdrop-blur p-1 rounded-lg border border-line shadow-md">
             <button
               onClick={() => setViewMode('3d')}
               className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
                 viewMode === '3d'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-blue-600 text-ink shadow-sm'
+                  : 'text-faint hover:text-dim hover:bg-raised'
               }`}
             >
               <Box className="h-3 w-3" />
@@ -176,8 +176,8 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               onClick={() => setViewMode('camera')}
               className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
                 viewMode === 'camera'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-blue-600 text-ink shadow-sm'
+                  : 'text-faint hover:text-dim hover:bg-raised'
               }`}
             >
               <Video className="h-3 w-3" />
@@ -188,8 +188,8 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               onClick={() => setViewMode('street')}
               className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold transition ${
                 viewMode === 'street'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-blue-600 text-ink shadow-sm'
+                  : 'text-faint hover:text-dim hover:bg-raised'
               }`}
             >
               <MapPin className="h-3 w-3" />
@@ -198,10 +198,10 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
           </div>
 
           {/* Top Right Speed Indicator */}
-          <div className="absolute top-2 right-2 z-20 bg-slate-900/90 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-800 flex items-center gap-1.5 shadow-md">
+          <div className="absolute top-2 right-2 z-20 bg-panel backdrop-blur px-2.5 py-1 rounded-lg border border-line flex items-center gap-1.5 shadow-md">
             <Gauge className="h-3.5 w-3.5 text-blue-400" />
-            <span className="text-xs font-bold text-white">{bus.speed.toFixed(0)}</span>
-            <span className="text-[10px] text-slate-400">km/h</span>
+            <span className="text-xs font-bold text-ink">{bus.speed.toFixed(0)}</span>
+            <span className="text-[10px] text-faint">km/h</span>
           </div>
 
           {/* Viewport Content */}
@@ -214,7 +214,7 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               className="w-full h-full"
             />
           ) : viewMode === 'camera' ? (
-            <div className="w-full h-full relative overflow-hidden bg-slate-950">
+            <div className="w-full h-full relative overflow-hidden bg-canvas">
               <canvas ref={canvasRef} width={420} height={190} className="w-full h-full object-cover" />
             </div>
           ) : (
@@ -229,39 +229,39 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
         </div>
 
         {/* Basic Overview Telemetry Grid */}
-        <div className="p-4 space-y-3 bg-slate-900/90">
+        <div className="p-4 space-y-3 bg-panel">
           
           {/* Key Metrics Row */}
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Speed</span>
+            <div className="p-2 glass-sunken rounded-xl">
+              <span className="text-[10px] text-faint uppercase font-medium">Speed</span>
               <div className="text-xs font-bold text-blue-400 mt-0.5">{bus.speed.toFixed(1)} km/h</div>
             </div>
 
-            <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Heading</span>
+            <div className="p-2 glass-sunken rounded-xl">
+              <span className="text-[10px] text-faint uppercase font-medium">Heading</span>
               <div className="text-xs font-bold text-amber-400 mt-0.5">{bus.heading.toFixed(0)}°</div>
             </div>
 
-            <div className="p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase font-medium">Anomalies</span>
+            <div className="p-2 glass-sunken rounded-xl">
+              <span className="text-[10px] text-faint uppercase font-medium">Anomalies</span>
               <div className="text-xs font-bold text-emerald-400 mt-0.5">{busEvents.length} Detected</div>
             </div>
           </div>
 
           {/* Location Coordinates */}
-          <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-slate-400">Coordinates:</span>
+          <div className="p-2.5 glass-sunken rounded-xl flex items-center justify-between text-xs">
+            <span className="text-[11px] text-faint">Coordinates:</span>
             <span className="font-mono text-[11px] text-emerald-400 font-medium">
               {bus.latitude.toFixed(4)}, {bus.longitude.toFixed(4)}
             </span>
           </div>
 
           {/* AI Edge Camera & Defect Status Overview */}
-          <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <div className="p-2.5 glass-sunken rounded-xl flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-[11px]">
               <Cpu className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-              <span className="text-slate-300">
+              <span className="text-dim">
                 {latestDefect ? (
                   <span className="text-amber-400 font-medium flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" />
@@ -278,7 +278,7 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
         </div>
 
         {/* Compact Footer Actions */}
-        <div className="px-4 py-2.5 border-t border-slate-800/80 bg-slate-950/80 flex items-center justify-between text-xs">
+        <div className="px-4 py-2.5 border-t border-line bg-raised flex items-center justify-between text-xs">
           <Link
             href="/architecture"
             onClick={onClose}
@@ -290,7 +290,7 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
 
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 transition text-[11px] font-medium"
+            className="px-3 py-1 rounded-lg bg-raised text-dim hover:bg-hover transition text-[11px] font-medium"
           >
             Close Overview
           </button>

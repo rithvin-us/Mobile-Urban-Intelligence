@@ -1,57 +1,92 @@
 'use client';
 
 import React from 'react';
-import { X, Command } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const GROUPS: { title: string; keys: [string, string][] }[] = [
+  {
+    title: 'Map',
+    keys: [
+      ['F', 'Fit the whole fleet'],
+      ['L', 'Cycle basemap'],
+      ['3', 'Tilt to 3D'],
+      ['R', 'Rain radar'],
+      ['G', 'GPU markers'],
+    ],
+  },
+  {
+    title: 'Console',
+    keys: [
+      ['[', 'Controls panel'],
+      [']', 'Intelligence panel'],
+      ['V', 'Hide every overlay'],
+      ['T', 'Night / daylight theme'],
+      ['D', 'Scripted demo fleet'],
+    ],
+  },
+  {
+    title: 'Selection',
+    keys: [
+      ['Esc', 'Clear the selection'],
+      ['?', 'This list'],
+    ],
+  },
+];
+
 export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
   if (!isOpen) return null;
 
-  const shortcuts = [
-    { key: 'T', action: 'Toggle light / dark executive theme mode' },
-    { key: 'F', action: 'Fit map to active fleet coordinates' },
-    { key: '3', action: 'Toggle 3D tilt view (satellite basemap)' },
-    { key: 'L', action: 'Cycle basemaps (Streets / Satellite / Hybrid)' },
-    { key: 'C', action: 'Inspect verified municipal defect clusters' },
-    { key: 'R', action: 'Toggle precipitation radar overlay' },
-    { key: 'Esc', action: 'Clear selection / Close active modal' },
-    { key: '?', action: 'Toggle keyboard shortcuts helper' },
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-panel border border-line rounded-xl shadow-2xl p-5 text-ink">
-        <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Command className="h-4 w-4 text-accent" />
-            <h3 className="text-sm font-bold">Keyboard Shortcuts</h3>
-          </div>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="glass panel-enter w-full max-w-md overflow-hidden rounded-panel"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Keyboard shortcuts"
+      >
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <h2 className="font-semibold text-ink">Keyboard shortcuts</h2>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 rounded text-faint hover:text-ink transition"
+            aria-label="Close"
+            className="rounded-lg p-1.5 text-faint transition-colors hover:bg-hover/60 hover:text-ink"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="space-y-2">
-          {shortcuts.map((s) => (
-            <div key={s.key} className="flex items-center justify-between text-xs py-1 border-b border-line-soft last:border-0">
-              <span className="text-dim">{s.action}</span>
-              <kbd className="px-2 py-0.5 rounded bg-canvas border border-line font-mono font-bold text-ink">
-                {s.key}
-              </kbd>
+        <div className="grid gap-4 p-4 sm:grid-cols-3">
+          {GROUPS.map((group) => (
+            <div key={group.title}>
+              <div className="mb-1.5 text-mini font-semibold text-dim">{group.title}</div>
+              <ul className="space-y-1">
+                {group.keys.map(([key, description]) => (
+                  <li key={key} className="flex items-baseline gap-2">
+                    <kbd className="tnum min-w-[22px] rounded border border-line bg-raised px-1.5 py-0.5 text-center font-mono text-micro text-ink">
+                      {key}
+                    </kbd>
+                    <span className="text-mini text-dim">{description}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-line text-center text-[11px] text-faint">
-          Press <kbd className="px-1.5 py-0.5 rounded bg-canvas border border-line font-mono text-ink">?</kbd> anytime to toggle shortcuts
-        </div>
+        <p className="border-t border-line px-4 py-2.5 text-micro text-faint">
+          Shortcuts are ignored while a text field has focus.
+        </p>
       </div>
     </div>
   );

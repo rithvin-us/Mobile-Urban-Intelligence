@@ -1,12 +1,11 @@
 'use client';
 
 import React from 'react';
-import { ChevronRight, PanelRight, Download } from 'lucide-react';
-import { exportDefectsToCSV } from '@/lib/export_reports';
+import { Download } from 'lucide-react';
 
-import type { Bus, DetectionEvent, EventSeverity, EventStatus, FleetCounts } from '@/types';
+import { exportDefectsToCSV } from '@/lib/export_reports';
+import type { Bus, DetectionEvent, EventStatus, FleetCounts } from '@/types';
 import {
-  EVENT_COLORS,
   eventMetadata,
   eventTypeLabel,
   relativeTime,
@@ -14,16 +13,20 @@ import {
 } from '@/lib/format';
 import { FLEET_STATE_COLORS } from '@/lib/fleet';
 import { usePlaceName } from '@/lib/use_place_name';
-import { Dot, SectionTitle, Segmented } from '@/components/ops/primitives';
+import {
+  Dot,
+  FloatingPanel,
+  PanelHeader,
+  SectionTitle,
+  Segmented,
+} from '@/components/ops/primitives';
 import { cn } from '@/lib/utils';
-
 
 export type StatusFilter = 'ALL' | 'OPEN' | EventStatus;
 export type SeverityFilter = 'ALL' | 'HIGH_UP';
 
 interface RightPanelProps {
-  collapsed: boolean;
-  onToggleCollapsed: () => void;
+  onClose: () => void;
   fleet: FleetCounts;
   events: DetectionEvent[];
   busById: Map<string, Bus>;
@@ -43,22 +46,14 @@ interface RightPanelProps {
   now: number;
 }
 
-function FleetTile({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color?: string;
-}) {
+function FleetTile({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="flex-1 border-r border-line-soft px-2 py-[6px] last:border-r-0">
-      <div className="flex items-center gap-1.5 text-[10px] text-faint">
+    <div className="flex-1 rounded-lg bg-raised px-2 py-1.5">
+      <div className="flex items-center gap-1.5 text-micro text-faint">
         {color && <Dot color={color} />}
         {label}
       </div>
-      <div className="tnum font-mono text-[16px] leading-tight text-ink">{value}</div>
+      <div className="tnum font-mono text-lg leading-tight text-ink">{value}</div>
     </div>
   );
 }
@@ -81,28 +76,31 @@ function EventRow({
   const place = usePlaceName(event.latitude, event.longitude, geocode);
   const meta = eventMetadata(event);
   const busNumber = bus?.bus_number ?? meta.bus_number ?? event.bus_id;
+  const namedPlace = meta.location_name ?? place;
 
   return (
     <button
       type="button"
       onClick={onSelect}
       className={cn(
-        'flex w-full gap-2 border-b border-line-soft px-3 py-2 text-left transition-colors',
-        selected ? 'bg-accent-soft' : 'hover:bg-hover'
+        'flex w-full gap-2 border-l-2 px-3 py-2 text-left transition-colors',
+        selected
+          ? 'border-l-[color:var(--accent)] bg-accent-soft'
+          : 'border-l-transparent hover:bg-hover/50'
       )}
     >
-      <span className="mt-[5px]">
-        <Dot color={event.status === 'RESOLVED' ? '#4F9D77' : severityDot(event.severity)} />
+      <span className="mt-[6px]">
+        <Dot color={event.status === 'RESOLVED' ? 'var(--ok)' : severityDot(event.severity)} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="truncate text-ink">{eventTypeLabel(event.event_type)}</span>
-          <span className="tnum shrink-0 font-mono text-[10px] text-faint">
+          <span className="tnum shrink-0 font-mono text-micro text-faint">
             {relativeTime(event.timestamp, now)}
           </span>
         </span>
-        <span className="block truncate text-[11px] text-dim">{place}</span>
-        <span className="tnum block truncate font-mono text-[10px] text-faint">
+        <span className="block truncate text-mini text-dim">{namedPlace}</span>
+        <span className="tnum block truncate font-mono text-micro text-faint">
           {busNumber} · {(event.confidence * 100).toFixed(0)}%
           {event.status !== 'NEW' && ` · ${event.status.toLowerCase()}`}
         </span>
@@ -113,16 +111,15 @@ function EventRow({
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-r border-line-soft px-3 py-[5px] last:border-r-0 even:border-r-0">
-      <div className="text-[10px] text-faint">{label}</div>
-      <div className="tnum font-mono text-[12px] text-ink">{value}</div>
+    <div className="rounded-lg bg-raised px-2.5 py-1.5">
+      <div className="text-micro text-faint">{label}</div>
+      <div className="tnum truncate font-mono text-sm text-ink">{value}</div>
     </div>
   );
 }
 
 export function RightPanel({
-  collapsed,
-  onToggleCollapsed,
+  onClose,
   fleet,
   events,
   busById,
@@ -135,56 +132,30 @@ export function RightPanel({
   stats,
   now,
 }: RightPanelProps) {
-  if (collapsed) {
-    return (
-      <div className="flex h-full w-11 flex-col items-center gap-3 border-l border-line bg-panel py-2">
-        <button
-          type="button"
-          onClick={onToggleCollapsed}
-          aria-label="Open intelligence panel"
-          title="Open intelligence panel"
-          className="p-1.5 text-dim transition-colors hover:text-ink"
-        >
-          <PanelRight className="h-4 w-4" />
-        </button>
-        <span className="tnum font-mono text-[11px] text-accent">{fleet.active}</span>
-        <span className="tnum font-mono text-[11px] text-warn">{stats.activeIncidents}</span>
-      </div>
-    );
-  }
-
   const visible = events.slice(0, 40);
 
   return (
-    <div className="flex h-full w-[302px] flex-col border-l border-line bg-panel">
-      <div className="flex items-center justify-between border-b border-line px-3 py-2">
-        <span className="text-ink font-medium">City intelligence</span>
-        <div className="flex items-center gap-1.5">
+    <FloatingPanel className="flex max-h-full w-[306px] flex-col">
+      <PanelHeader
+        title="City intelligence"
+        onClose={onClose}
+        actions={
           <button
             type="button"
             onClick={() => exportDefectsToCSV(events)}
-            aria-label="Export Municipal Defects CSV Report"
-            title="Export Municipal Defects CSV Report"
-            className="flex items-center gap-1 px-2 py-0.5 rounded border border-line bg-canvas text-[11px] text-dim hover:text-ink transition"
+            aria-label="Download the defect list as CSV"
+            title="Download the defect list as CSV"
+            className="flex items-center gap-1 rounded-lg border border-line-soft bg-raised px-2 py-1 text-mini text-dim transition-colors hover:text-ink"
           >
             <Download className="h-3 w-3 text-accent" />
             <span>CSV</span>
           </button>
-          <button
-            type="button"
-            onClick={onToggleCollapsed}
-            aria-label="Collapse intelligence panel"
-            className="text-faint transition-colors hover:text-ink p-0.5"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
+        }
+      />
 
       <div className="flex min-h-0 flex-1 flex-col">
         <SectionTitle>Fleet</SectionTitle>
-        <div className="flex border-y border-line-soft">
+        <div className="flex gap-1.5 px-3">
           <FleetTile label="Active" value={fleet.active} color={FLEET_STATE_COLORS.ACTIVE} />
           <FleetTile label="Idle" value={fleet.idle} color={FLEET_STATE_COLORS.IDLE} />
           <FleetTile label="Offline" value={fleet.offline} color={FLEET_STATE_COLORS.OFFLINE} />
@@ -192,12 +163,14 @@ export function RightPanel({
         </div>
 
         <SectionTitle
-          right={<span className="tnum font-mono text-[10px] text-faint">{events.length} shown</span>}
+          right={
+            <span className="tnum font-mono text-micro text-faint">{events.length} shown</span>
+          }
         >
           Recent detections
         </SectionTitle>
 
-        <div className="flex gap-1 px-3 pb-2">
+        <div className="flex gap-1.5 px-3 pb-2">
           <Segmented
             className="flex-1"
             value={statusFilter}
@@ -219,11 +192,14 @@ export function RightPanel({
           />
         </div>
 
-        <div className="min-h-[176px] flex-1 overflow-y-auto border-t border-line-soft">
+        <div className="min-h-[160px] flex-1 overflow-y-auto border-y border-line-soft">
           {visible.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[11px] text-faint">
-              No detections match these filters. Widen the filter or switch layers back on.
-            </p>
+            <div className="px-4 py-8 text-center">
+              <p className="text-mini text-dim">Nothing matches these filters.</p>
+              <p className="mt-1 text-micro text-faint">
+                Widen the severity or status filter, or switch the layer back on in Controls.
+              </p>
+            </div>
           ) : (
             visible.map((event, index) => (
               <EventRow
@@ -240,7 +216,7 @@ export function RightPanel({
         </div>
 
         <SectionTitle>Today</SectionTitle>
-        <div className="grid grid-cols-2 border-t border-line-soft">
+        <div className="grid grid-cols-2 gap-1.5 px-3 pb-3">
           <StatCell label="Detections" value={String(stats.totalEvents)} />
           <StatCell label="Road defects" value={String(stats.roadDefects)} />
           <StatCell label="Open incidents" value={String(stats.activeIncidents)} />
@@ -249,7 +225,7 @@ export function RightPanel({
             label="Avg response"
             value={
               stats.avgResponseMinutes === null
-                ? 'no closures yet'
+                ? 'none closed yet'
                 : `${stats.avgResponseMinutes.toFixed(1)} min`
             }
           />
@@ -259,13 +235,6 @@ export function RightPanel({
           />
         </div>
       </div>
-
-      <div className="border-t border-line px-3 py-2 text-[10px] text-faint">
-        <span className="flex items-center gap-1.5">
-          <Dot color={EVENT_COLORS.POTHOLE} />
-          <span>Marker colour shows detection class; size shows severity.</span>
-        </span>
-      </div>
-    </div>
+    </FloatingPanel>
   );
 }

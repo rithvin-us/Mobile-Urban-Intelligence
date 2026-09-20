@@ -33,3 +33,11 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Evidence frames written by the API at runtime. The directory itself is kept
+# so the static mount exists in a fresh container.
+apps/api/app/static/evidence/*
+!apps/api/app/static/evidence/.gitkeep
+
+# Edge store-and-forward buffers
+edge_buffer_*.db

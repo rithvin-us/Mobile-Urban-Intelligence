@@ -44,7 +44,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 11.3000,
         "longitude": 76.9500,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/pothole_sample.jpg",
+        "evidence_url": "/evidence/pothole_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-001", "route_name": "101", "location_name": "Mettupalayam Main Road"},
     },
     {
@@ -56,7 +56,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 11.1920,
         "longitude": 77.2680,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/traffic_sample.jpg",
+        "evidence_url": "/evidence/traffic_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-002", "route_name": "202", "location_name": "Avinashi NH 544 Toll Plaza"},
     },
     {
@@ -68,7 +68,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 10.7020,
         "longitude": 77.0080,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/road_damage_sample.jpg",
+        "evidence_url": "/evidence/road_damage_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-003", "route_name": "303", "location_name": "Achipatti - Pollachi Highway"},
     },
     {
@@ -80,7 +80,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 10.8420,
         "longitude": 76.8200,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/traffic_sample.jpg",
+        "evidence_url": "/evidence/traffic_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-005", "route_name": "505", "location_name": "Walayar Border Checkpoint"},
     },
     {
@@ -92,7 +92,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 11.0450,
         "longitude": 76.8520,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/waterlogging_sample.jpg",
+        "evidence_url": "/evidence/waterlogging_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-007", "route_name": "14C", "location_name": "Marudhamalai Temple Foothills"},
     },
     {
@@ -104,7 +104,7 @@ REGIONAL_SEED_EVENTS = [
         "latitude": 10.9980,
         "longitude": 77.2850,
         "status": "NEW",
-        "evidence_url": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/pothole_sample.jpg",
+        "evidence_url": "/evidence/pothole_sample.jpg",
         "metadata_payload": {"bus_number": "BUS-006", "route_name": "606", "location_name": "Palladam Central Junction"},
     },
 ]

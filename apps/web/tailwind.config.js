@@ -31,14 +31,26 @@ module.exports = {
         water: "var(--water)",
       },
       fontFamily: {
-        sans: ['Inter', 'IBM Plex Sans', 'Segoe UI', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'IBM Plex Mono', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
+        sans: ['var(--font-ui)', 'Segoe UI', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace'],
       },
+      // A 1.2 scale off a 13px base. Telemetry rows sit at micro/mini, panel
+      // headings at base, and only the fleet counters go above that.
       fontSize: {
+        micro: ['10px', { lineHeight: '13px', letterSpacing: '0.01em' }],
+        mini: ['11px', { lineHeight: '15px', letterSpacing: '0.005em' }],
         '2xs': ['10px', '14px'],
+        sm: ['12px', { lineHeight: '16px' }],
+        base: ['13px', { lineHeight: '18px' }],
+        md: ['15px', { lineHeight: '20px', letterSpacing: '-0.01em' }],
+        lg: ['18px', { lineHeight: '23px', letterSpacing: '-0.015em' }],
+        xl: ['22px', { lineHeight: '26px', letterSpacing: '-0.02em' }],
       },
       boxShadow: {
-        float: '0 10px 30px -12px rgba(0,0,0,0.75)',
+        float: 'var(--shadow-float)',
+      },
+      borderRadius: {
+        panel: '14px',
       },
     },
   },

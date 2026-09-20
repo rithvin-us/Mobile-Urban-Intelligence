@@ -38,6 +38,11 @@ CLASS_SEVERITY_MAP = {
     "ROAD_DAMAGE": "MEDIUM",
 }
 
+# Ultralytics treats a video path as a stream and decodes every frame into
+# memory before returning. A road scan only needs the current frame, so these
+# are grabbed one at a time instead.
+VIDEO_SUFFIXES = (".mp4", ".webm", ".avi", ".mov", ".mkv", ".m4v")
+
 BOX_COLORS = {
     "POTHOLE": "#EF4444",      # Red
     "WATERLOGGING": "#06B6D4", # Cyan
@@ -57,6 +62,7 @@ class MultilabelYoloDetector(BaseDetector):
         self.model_path = None
         self.is_ultralytics_loaded = False
         self.class_names = {0: "pothole", 1: "waterlogging", 2: "cracks"}
+        self._frame_cursor = 0
 
     def load_model(self, model_path: Optional[str] = None, **kwargs) -> bool:
         """Loads model weights (.pt). Default to edge/inference/models/multilabel_best.pt."""
@@ -86,12 +92,48 @@ class MultilabelYoloDetector(BaseDetector):
             self.is_ultralytics_loaded = False
             return True
 
+    def grab_video_frame(self, video_path: str, frame_index: Optional[int] = None):
+        """
+        Reads a single frame out of a video file.
+
+        Returns a BGR numpy array, or None when OpenCV is missing or the file
+        cannot be decoded, in which case the caller falls back to its own path.
+        """
+        try:
+            import cv2
+        except ImportError:
+            logger.debug("OpenCV not installed; cannot seek inside %s", video_path)
+            return None
+
+        capture = cv2.VideoCapture(video_path)
+        try:
+            if not capture.isOpened():
+                return None
+            total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+            if frame_index is None:
+                self._frame_cursor += 1
+                frame_index = self._frame_cursor
+            if total > 0:
+                frame_index = frame_index % total
+                capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+            ok, frame = capture.read()
+            return frame if ok else None
+        finally:
+            capture.release()
+
     def infer(self, frame_data: Any, confidence_threshold: float = 0.45) -> List[DetectionResult]:
         """
         Runs inference on input frame (file path, PIL Image, or numpy array).
         Returns a list of DetectionResult objects.
         """
         detections: List[DetectionResult] = []
+
+        # A video path is turned into one frame first: passing the file itself
+        # makes Ultralytics decode the entire clip, which took ~20 s per scan.
+        if isinstance(frame_data, str) and frame_data.lower().endswith(VIDEO_SUFFIXES):
+            frame = self.grab_video_frame(frame_data)
+            if frame is not None:
+                frame_data = frame
 
         if self.is_ultralytics_loaded and self.model is not None:
             try:

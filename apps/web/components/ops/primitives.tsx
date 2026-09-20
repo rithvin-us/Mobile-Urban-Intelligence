@@ -3,7 +3,13 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-/** Section heading inside a side panel. */
+/**
+ * Shared console parts. Everything floating on the map uses `FloatingPanel` so
+ * blur, hairline and shadow stay identical across the console; anything that
+ * looks different here is meant to.
+ */
+
+/** Section heading inside a panel. Sentence case, no tracked-out label chrome. */
 export function SectionTitle({
   children,
   right,
@@ -12,8 +18,8 @@ export function SectionTitle({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between px-3 pb-1.5 pt-3">
-      <h2 className="text-[11px] font-semibold tracking-wide text-dim">{children}</h2>
+    <div className="flex items-center justify-between gap-2 px-3 pb-1.5 pt-3">
+      <h2 className="text-mini font-semibold text-dim">{children}</h2>
       {right}
     </div>
   );
@@ -38,7 +44,7 @@ export function Dot({
   );
 }
 
-/** A labelled switch row: the label is the hit area, the track shows state. */
+/** A labelled switch row: the whole row is the hit area, the track shows state. */
 export function SwitchRow({
   label,
   checked,
@@ -66,29 +72,36 @@ export function SwitchRow({
       title={hint}
       onClick={() => onChange(!checked)}
       className={cn(
-        'flex w-full items-center gap-2 px-3 py-[6px] text-left transition-colors',
-        disabled ? 'cursor-not-allowed opacity-40' : 'hover:bg-hover'
+        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-[7px] text-left transition-colors',
+        disabled ? 'cursor-not-allowed opacity-40' : 'hover:bg-hover/60'
+      )}
+    >
+      <Track checked={checked} />
+      {color && <Dot color={color} className={checked ? '' : 'opacity-30'} />}
+      <span className={cn('flex-1 truncate', checked ? 'text-ink' : 'text-dim')}>{label}</span>
+      {typeof count === 'number' && (
+        <span className="tnum font-mono text-mini text-faint">{count}</span>
+      )}
+    </button>
+  );
+}
+
+/** The switch track on its own, for rows that are not a full-width button. */
+export function Track({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={cn(
+        'relative h-[15px] w-[26px] shrink-0 rounded-full border transition-colors',
+        checked ? 'border-accent-line bg-accent-soft' : 'border-line bg-raised'
       )}
     >
       <span
         className={cn(
-          'relative h-[14px] w-[24px] shrink-0 rounded-full border transition-colors',
-          checked ? 'border-accent-line bg-accent-soft' : 'border-line bg-raised'
+          'absolute top-[2px] h-[9px] w-[9px] rounded-full transition-all duration-150',
+          checked ? 'left-[14px] bg-accent' : 'left-[3px] bg-faint'
         )}
-      >
-        <span
-          className={cn(
-            'absolute top-[2px] h-[8px] w-[8px] rounded-full transition-all',
-            checked ? 'left-[13px] bg-accent' : 'left-[3px] bg-faint'
-          )}
-        />
-      </span>
-      {color && <Dot color={color} className={checked ? '' : 'opacity-35'} />}
-      <span className={cn('flex-1 truncate', checked ? 'text-ink' : 'text-dim')}>{label}</span>
-      {typeof count === 'number' && (
-        <span className="tnum font-mono text-[11px] text-faint">{count}</span>
-      )}
-    </button>
+      />
+    </span>
   );
 }
 
@@ -105,7 +118,12 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn('flex border border-line/80 bg-panel/80 backdrop-blur-md rounded-lg overflow-hidden shadow-sm', className)}>
+    <div
+      className={cn(
+        'flex gap-0.5 rounded-lg border border-line-soft bg-raised p-0.5',
+        className
+      )}
+    >
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -115,8 +133,10 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'flex-1 px-2.5 py-[5px] text-[11px] transition-colors',
-              active ? 'bg-accent-soft/90 text-ink font-semibold' : 'text-dim hover:bg-hover/80 hover:text-ink'
+              'flex-1 whitespace-nowrap rounded-[6px] px-2.5 py-[4px] text-mini transition-colors',
+              active
+                ? 'bg-accent-soft font-semibold text-ink shadow-[inset_0_0_0_1px_var(--accent-line)]'
+                : 'text-dim hover:bg-hover/60 hover:text-ink'
             )}
           >
             {option.label}
@@ -141,8 +161,8 @@ export function DataRow({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 px-3 py-[5px]">
-      <span className="shrink-0 text-[11px] text-faint">{label}</span>
-      <span className={cn('truncate text-right', mono && 'tnum font-mono text-[12px]', tone ?? 'text-ink')}>
+      <span className="shrink-0 text-mini text-faint">{label}</span>
+      <span className={cn('truncate text-right', mono && 'tnum font-mono text-sm', tone ?? 'text-ink')}>
         {value}
       </span>
     </div>
@@ -164,9 +184,9 @@ export function ActionButton({
   title?: string;
 }) {
   const tones = {
-    neutral: 'border-line bg-raised/80 text-dim hover:border-accent-line hover:text-ink',
-    primary: 'border-accent-line bg-accent-soft/90 text-ink hover:bg-accent-soft',
-    ok: 'border-emerald-500/40 bg-emerald-950/40 text-ok hover:bg-emerald-950/60',
+    neutral: 'border-line bg-raised text-dim hover:border-accent-line hover:text-ink',
+    primary: 'border-accent-line bg-accent-soft text-ink hover:brightness-110',
+    ok: 'border-[color:var(--ok)]/40 bg-[color:var(--ok)]/12 text-ok hover:bg-[color:var(--ok)]/20',
   } as const;
 
   return (
@@ -176,7 +196,7 @@ export function ActionButton({
       disabled={disabled}
       title={title}
       className={cn(
-        'flex-1 border px-2 py-[6px] text-[11px] transition-colors rounded disabled:cursor-not-allowed disabled:opacity-40',
+        'flex-1 rounded-lg border px-2 py-[6px] text-mini font-medium transition-all disabled:cursor-not-allowed disabled:opacity-40',
         tones[tone]
       )}
     >
@@ -185,7 +205,7 @@ export function ActionButton({
   );
 }
 
-/** Floating panel shell for the bus and event detail cards. */
+/** Floating glass panel shell. Every surface above the map uses this. */
 export function FloatingPanel({
   children,
   className,
@@ -196,7 +216,7 @@ export function FloatingPanel({
   return (
     <div
       className={cn(
-        'pointer-events-auto w-[275px] rounded-xl border border-line/80 bg-panel/80 shadow-2xl backdrop-blur-md overflow-hidden',
+        'glass panel-enter pointer-events-auto overflow-hidden rounded-panel',
         className
       )}
     >
@@ -210,29 +230,78 @@ export function PanelHeader({
   subtitle,
   onClose,
   accent,
+  actions,
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   onClose?: () => void;
   accent?: string;
+  actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2 border-b border-line px-3 py-2">
-      {accent && <Dot color={accent} className="mt-[6px]" />}
+    <div className="flex items-start gap-2 border-b border-line px-3 py-2.5">
+      {accent && <Dot color={accent} className="mt-[7px]" />}
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-ink">{title}</div>
-        {subtitle && <div className="truncate text-[11px] text-faint">{subtitle}</div>}
+        <div className="truncate font-semibold text-ink">{title}</div>
+        {subtitle && <div className="truncate text-mini text-faint">{subtitle}</div>}
       </div>
+      {actions}
       {onClose && (
         <button
           type="button"
           onClick={onClose}
           aria-label="Close panel"
-          className="-mr-1 px-1 text-faint transition-colors hover:text-ink"
+          className="-mr-1 rounded p-1 text-faint transition-colors hover:bg-hover/60 hover:text-ink"
         >
-          ×
+          <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden>
+            <path
+              d="M1 1l10 10M11 1L1 11"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       )}
     </div>
+  );
+}
+
+/** Square icon control used in the map rails and the header. */
+export function IconButton({
+  label,
+  onClick,
+  active = false,
+  disabled = false,
+  children,
+  className,
+}: {
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-pressed={active}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        'flex h-7 w-7 items-center justify-center rounded-lg border transition-all',
+        disabled
+          ? 'cursor-not-allowed border-line-soft bg-raised text-faint opacity-40'
+          : active
+          ? 'border-accent-line bg-accent-soft text-accent'
+          : 'border-line-soft bg-raised text-dim hover:bg-hover/70 hover:text-ink',
+        className
+      )}
+    >
+      {children}
+    </button>
   );
 }

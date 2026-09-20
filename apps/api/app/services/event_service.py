@@ -4,6 +4,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.event import Event
 from app.schemas.event import EventCreate
+from app.services.evidence_store import store_data_url
 
 def get_all_events(
     db: Session,
@@ -24,7 +25,11 @@ def get_event_by_id(db: Session, event_id: str) -> Optional[Event]:
 def create_event(db: Session, event_in: EventCreate) -> Event:
     event_id = event_in.id or str(uuid.uuid4())
     event_timestamp = event_in.timestamp or datetime.now(timezone.utc)
-    
+
+    # An inline data: URL becomes a file on disk and a short served path, so
+    # the row stays small and the event list stays cheap to poll.
+    evidence_url = store_data_url(event_id, event_in.evidence_url)
+
     db_event = Event(
         id=event_id,
         bus_id=event_in.bus_id,
@@ -35,7 +40,7 @@ def create_event(db: Session, event_in: EventCreate) -> Event:
         longitude=event_in.longitude,
         timestamp=event_timestamp,
         status=event_in.status.value if hasattr(event_in.status, "value") else str(event_in.status),
-        evidence_url=event_in.evidence_url,
+        evidence_url=evidence_url,
         metadata_payload=event_in.metadata
     )
 

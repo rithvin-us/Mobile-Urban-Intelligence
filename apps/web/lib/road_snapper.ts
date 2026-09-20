@@ -77,20 +77,42 @@ export async function getSnappedRoutePath(
 /** Maximum distance in meters a coordinate can be snapped to a road polyline. */
 const MAX_SNAP_DISTANCE_METERS = 500;
 
+export interface SnapResult {
+  lat: number;
+  lng: number;
+  heading: number;
+  /** Index of the segment the point landed on, to seed the next frame's search. */
+  segment: number;
+}
+
+/**
+ * A bus moves a few metres between frames, so rescanning the whole corridor
+ * sixty times a second is wasted work. Passing last frame's segment index
+ * narrows the search to its neighbourhood; omit it for a full scan.
+ */
 export function snapCoordinateToPolyline(
   lat: number,
   lng: number,
-  polyline: { lat: number; lng: number }[]
-): { lat: number; lng: number; heading: number } {
+  polyline: { lat: number; lng: number }[],
+  segmentHint?: number,
+  window = 4
+): SnapResult {
   if (!polyline || polyline.length < 2) {
-    return { lat, lng, heading: 0 };
+    return { lat, lng, heading: 0, segment: 0 };
   }
 
   let minDistance = Infinity;
   let bestPoint = { lat, lng };
   let bestHeading = 0;
+  let bestSegment = 0;
 
-  for (let i = 0; i < polyline.length - 1; i++) {
+  const lastSegment = polyline.length - 2;
+  const from =
+    segmentHint === undefined ? 0 : Math.max(0, segmentHint - window);
+  const to =
+    segmentHint === undefined ? lastSegment : Math.min(lastSegment, segmentHint + window);
+
+  for (let i = from; i <= to; i++) {
     const p1 = polyline[i];
     const p2 = polyline[i + 1];
 
@@ -102,15 +124,28 @@ export function snapCoordinateToPolyline(
       minDistance = dist;
       bestPoint = projected;
       bestHeading = calculateHeading(p1.lat, p1.lng, p2.lat, p2.lng);
+      bestSegment = i;
     }
   }
 
-  // If closest polyline segment is further than 500m, do not warp coordinate across city!
-  if (minDistance > MAX_SNAP_DISTANCE_METERS) {
-    return { lat, lng, heading: bestHeading };
+  // A windowed search can miss the real nearest segment when a bus is respawned
+  // or teleported by a fresh fix; fall back to the full corridor in that case.
+  if (segmentHint !== undefined && minDistance > MAX_SNAP_DISTANCE_METERS) {
+    return snapCoordinateToPolyline(lat, lng, polyline);
   }
 
-  return { lat: bestPoint.lat, lng: bestPoint.lng, heading: bestHeading };
+  // Further than 500 m from any segment means this is not a route drift — do
+  // not warp the coordinate across the city to force it onto a road.
+  if (minDistance > MAX_SNAP_DISTANCE_METERS) {
+    return { lat, lng, heading: bestHeading, segment: bestSegment };
+  }
+
+  return {
+    lat: bestPoint.lat,
+    lng: bestPoint.lng,
+    heading: bestHeading,
+    segment: bestSegment,
+  };
 }
 
 function projectPointOnSegment(

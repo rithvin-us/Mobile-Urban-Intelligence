@@ -31,70 +31,119 @@ STEP_SECONDS = float(os.getenv("DEMO_STEP_SECONDS", "3"))
 FLEET_SIZE = int(os.getenv("DEMO_FLEET_SIZE", "24"))
 EVENT_CAP = int(os.getenv("DEMO_EVENT_CAP", "4000"))
 
-# Coimbatore corridors, matching the simulator's routes.
+# The ten regional corridors, generated from apps/web/lib/routes.ts so the
+# fleet runs on exactly the geometry the map draws. A bus on a route the
+# dashboard does not know about cannot be road-snapped and reads as drifting.
 ROUTES: Dict[str, List[Tuple[float, float]]] = {
-    "21A": [
-        (11.0183, 76.9725), (11.0135, 76.9762), (11.0134, 76.9865),
-        (11.0170, 76.9975), (11.0270, 77.0080), (11.0303, 77.0230),
-        (11.0295, 77.0410), (11.0303, 77.0230), (11.0270, 77.0080),
-        (11.0170, 76.9975), (11.0134, 76.9865), (11.0135, 76.9762),
+    "101": [
+        (11.0183, 76.9725), (11.0290, 76.9550), (11.0450, 76.9460),
+        (11.0780, 76.9380), (11.1550, 76.9350), (11.2420, 76.9580),
+        (11.3000, 76.9500), (11.3450, 76.9280), (11.3000, 76.9500),
+        (11.2420, 76.9580), (11.1550, 76.9350), (11.0780, 76.9380),
+        (11.0450, 76.9460), (11.0290, 76.9550), (11.0183, 76.9725),
+    ],
+    "202": [
+        (11.0183, 76.9725), (11.0300, 77.0320), (11.0650, 77.0850),
+        (11.1080, 77.1750), (11.1920, 77.2680), (11.1085, 77.3411),
+        (11.1920, 77.2680), (11.1080, 77.1750), (11.0650, 77.0850),
+        (11.0300, 77.0320), (11.0183, 76.9725),
+    ],
+    "303": [
+        (10.9885, 76.9585), (10.9230, 76.9680), (10.8800, 76.9750),
+        (10.8210, 76.9850), (10.7020, 77.0080), (10.6580, 77.0050),
+        (10.7020, 77.0080), (10.8210, 76.9850), (10.8800, 76.9750),
+        (10.9230, 76.9680), (10.9885, 76.9585),
+    ],
+    "404": [
+        (11.0183, 76.9725), (11.0380, 76.9780), (11.0820, 76.9950),
+        (11.1650, 77.0420), (11.2320, 77.1050), (11.3250, 77.0050),
+        (11.2320, 77.1050), (11.1650, 77.0420), (11.0820, 76.9950),
+        (11.0380, 76.9780), (11.0183, 76.9725),
+    ],
+    "505": [
+        (10.9885, 76.9585), (10.9580, 76.9500), (10.9150, 76.9120),
+        (10.8750, 76.8580), (10.8420, 76.8200), (10.8050, 76.7550),
+        (10.8420, 76.8200), (10.8750, 76.8580), (10.9150, 76.9120),
+        (10.9580, 76.9500), (10.9885, 76.9585),
+    ],
+    "606": [
+        (11.0015, 77.0285), (11.0030, 77.0520), (11.0250, 77.1250),
+        (11.0150, 77.2100), (10.9980, 77.2850), (11.0150, 77.2100),
+        (11.0250, 77.1250), (11.0030, 77.0520), (11.0015, 77.0285),
     ],
     "14C": [
-        (10.9885, 76.9585), (10.9978, 76.9617), (11.0035, 76.9540),
-        (11.0075, 76.9497), (11.0200, 76.9470), (11.0075, 76.9497),
-        (11.0035, 76.9540), (10.9978, 76.9617),
+        (10.9885, 76.9585), (10.9978, 76.9617), (11.0055, 76.9515),
+        (11.0180, 76.9200), (11.0310, 76.8900), (11.0450, 76.8520),
+        (11.0310, 76.8900), (11.0180, 76.9200), (11.0055, 76.9515),
+        (10.9978, 76.9617), (10.9885, 76.9585),
+    ],
+    "21A": [
+        (11.0183, 76.9725), (11.0134, 76.9865), (11.0170, 76.9975),
+        (11.0270, 77.0080), (11.0290, 77.0160), (11.0303, 77.0230),
+        (11.0450, 77.0550), (11.0303, 77.0230), (11.0290, 77.0160),
+        (11.0270, 77.0080), (11.0170, 76.9975), (11.0134, 76.9865),
+        (11.0183, 76.9725),
     ],
     "70": [
-        (11.0183, 76.9725), (11.0112, 76.9773), (11.0002, 76.9885),
-        (10.9905, 76.9750), (10.9978, 76.9617),
-    ],
-    "3B": [
-        (11.0183, 76.9725), (11.0230, 76.9585), (11.0355, 76.9520),
-        (11.0595, 76.9410), (11.0355, 76.9520), (11.0230, 76.9585),
+        (11.0183, 76.9725), (11.0160, 76.9680), (11.0290, 76.9550),
+        (11.0380, 76.9780), (11.0002, 76.9885), (10.9950, 76.9820),
+        (10.9885, 76.9585), (11.0183, 76.9725),
     ],
     "45": [
-        (11.0015, 77.0285), (11.0000, 76.9885), (10.9905, 76.9755),
-        (10.9978, 76.9617), (10.9905, 76.9755), (11.0000, 76.9885),
-    ],
-    "S7": [
-        (10.9525, 76.9470), (10.9635, 76.9540), (10.9885, 76.9585),
-        (10.9978, 76.9617), (11.0183, 76.9725), (10.9978, 76.9617),
-        (10.9885, 76.9585), (10.9635, 76.9540),
+        (11.0015, 77.0285), (11.0010, 77.0120), (11.0000, 76.9885),
+        (10.9950, 76.9810), (10.9978, 76.9617), (10.9950, 76.9810),
+        (11.0000, 76.9885), (11.0010, 77.0120), (11.0015, 77.0285),
     ],
 }
 
 # Fixed road faults: every bus passing one can report it, which is what makes a
 # defect show several sightings from different buses.
 HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
-    "21A": [
-        {"lat": 11.0134, "lon": 76.9865, "type": "POTHOLE", "severity": "HIGH"},
-        {"lat": 11.0270, "lon": 77.0080, "type": "TRAFFIC", "severity": "MEDIUM"},
-        {"lat": 11.0303, "lon": 77.0230, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+    "101": [
+        {"lat": 11.078, "lon": 76.938, "type": "POTHOLE", "severity": "CRITICAL"},
+        {"lat": 11.242, "lon": 76.958, "type": "ROAD_DAMAGE", "severity": "HIGH"},
+        {"lat": 11.029, "lon": 76.955, "type": "TRAFFIC", "severity": "MEDIUM"},
+    ],
+    "202": [
+        {"lat": 11.065, "lon": 77.085, "type": "WATERLOGGING", "severity": "HIGH"},
+        {"lat": 11.108, "lon": 77.175, "type": "POTHOLE", "severity": "HIGH"},
+        {"lat": 11.192, "lon": 77.268, "type": "TRAFFIC", "severity": "CRITICAL"},
+    ],
+    "303": [
+        {"lat": 10.88, "lon": 76.975, "type": "ROAD_DAMAGE", "severity": "MEDIUM"},
+        {"lat": 10.702, "lon": 77.008, "type": "PEDESTRIAN_RISK", "severity": "HIGH"},
+    ],
+    "404": [
+        {"lat": 11.082, "lon": 76.995, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+        {"lat": 11.232, "lon": 77.105, "type": "POTHOLE", "severity": "MEDIUM"},
+    ],
+    "505": [
+        {"lat": 10.875, "lon": 76.858, "type": "WATERLOGGING", "severity": "CRITICAL"},
+        {"lat": 10.842, "lon": 76.82, "type": "TRAFFIC_SIGN", "severity": "LOW"},
+    ],
+    "606": [
+        {"lat": 11.025, "lon": 77.125, "type": "INCIDENT", "severity": "HIGH"},
+        {"lat": 11.015, "lon": 77.21, "type": "ROAD_DAMAGE", "severity": "HIGH"},
     ],
     "14C": [
-        {"lat": 11.0035, "lon": 76.9540, "type": "WATERLOGGING", "severity": "HIGH"},
-        {"lat": 11.0200, "lon": 76.9470, "type": "ROAD_DAMAGE", "severity": "MEDIUM"},
+        {"lat": 11.0055, "lon": 76.9515, "type": "POTHOLE", "severity": "HIGH"},
+        {"lat": 11.031, "lon": 76.89, "type": "WATERLOGGING", "severity": "MEDIUM"},
+    ],
+    "21A": [
+        {"lat": 11.017, "lon": 76.9975, "type": "TRAFFIC", "severity": "HIGH"},
+        {"lat": 11.029, "lon": 77.016, "type": "POTHOLE", "severity": "CRITICAL"},
     ],
     "70": [
-        {"lat": 11.0112, "lon": 76.9773, "type": "TRAFFIC", "severity": "HIGH"},
-        {"lat": 11.0002, "lon": 76.9885, "type": "POTHOLE", "severity": "CRITICAL"},
-        {"lat": 10.9905, "lon": 76.9750, "type": "TRAFFIC_SIGN", "severity": "LOW"},
-    ],
-    "3B": [
-        {"lat": 11.0355, "lon": 76.9520, "type": "ROAD_DAMAGE", "severity": "HIGH"},
-        {"lat": 11.0230, "lon": 76.9585, "type": "PEDESTRIAN_RISK", "severity": "MEDIUM"},
+        {"lat": 11.016, "lon": 76.968, "type": "WATERLOGGING", "severity": "MEDIUM"},
+        {"lat": 11.038, "lon": 76.978, "type": "ROAD_DAMAGE", "severity": "MEDIUM"},
     ],
     "45": [
-        {"lat": 11.0000, "lon": 76.9885, "type": "POTHOLE", "severity": "MEDIUM"},
-        {"lat": 10.9905, "lon": 76.9755, "type": "WATERLOGGING", "severity": "MEDIUM"},
-    ],
-    "S7": [
-        {"lat": 10.9885, "lon": 76.9585, "type": "TRAFFIC", "severity": "HIGH"},
-        {"lat": 10.9635, "lon": 76.9540, "type": "ZEBRA_CROSSING", "severity": "LOW"},
+        {"lat": 11.001, "lon": 77.012, "type": "POTHOLE", "severity": "CRITICAL"},
+        {"lat": 10.995, "lon": 76.981, "type": "TRAFFIC", "severity": "MEDIUM"},
     ],
 }
 
-HOTSPOT_RADIUS_DEG = 0.0012  # roughly 130 m
+HOTSPOT_RADIUS_DEG = 0.0060  # roughly 650 m, sized for the regional corridors
 HOTSPOT_REPORT_CHANCE = 0.35
 OPPORTUNISTIC_CHANCE = 0.04
 
@@ -103,13 +152,17 @@ OPPORTUNISTIC_TYPES = [
     ("TRAFFIC_SIGN", 9), ("ZEBRA_CROSSING", 7), ("PEDESTRIAN_RISK", 8), ("INCIDENT", 4),
 ]
 
+# Served by the dashboard out of apps/web/public/evidence. The Cloud Storage
+# bucket these used to point at was deleted and every link 404s, which is why
+# the evidence popup fell back to a placeholder for every detection.
 EVIDENCE = {
-    "POTHOLE": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/pothole_sample.jpg",
-    "ROAD_DAMAGE": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/road_damage_sample.jpg",
-    "WATERLOGGING": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/waterlogging_sample.jpg",
-    "INCIDENT": "https://storage.googleapis.com/sih26124-urban-sensing/evidence/incident_sample.jpg",
+    "POTHOLE": "/evidence/pothole_sample.jpg",
+    "ROAD_DAMAGE": "/evidence/road_damage_sample.jpg",
+    "WATERLOGGING": "/evidence/waterlogging_sample.jpg",
+    "TRAFFIC": "/evidence/traffic_sample.jpg",
+    "INCIDENT": "/evidence/incident_sample.jpg",
 }
-DEFAULT_EVIDENCE = "https://storage.googleapis.com/sih26124-urban-sensing/evidence/default_sample.jpg"
+DEFAULT_EVIDENCE = "/evidence/default_sample.jpg"
 
 
 def _heading(start: Tuple[float, float], end: Tuple[float, float]) -> float:

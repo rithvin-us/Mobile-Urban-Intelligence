@@ -3,6 +3,8 @@
 import React from 'react';
 import { AlertOctagon, Bus, CloudRain, RotateCcw } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+
 interface QuickFilterBarProps {
   criticalOnly: boolean;
   activeOnly: boolean;
@@ -11,6 +13,45 @@ interface QuickFilterBarProps {
   onToggleActiveOnly: () => void;
   onToggleWeatherOnly: () => void;
   onResetFilters: () => void;
+}
+
+/** A filter chip: the icon colour is the layer's colour, so the eye can pick it out. */
+function Chip({
+  active,
+  onClick,
+  tone,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  tone: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-mini font-medium transition-all',
+        active
+          ? 'border-transparent text-ink'
+          : 'border-transparent text-dim hover:bg-hover/60 hover:text-ink'
+      )}
+      style={
+        active
+          ? { backgroundColor: `color-mix(in srgb, ${tone} 20%, transparent)`, borderColor: tone }
+          : undefined
+      }
+    >
+      <span style={{ color: tone }} className="flex">
+        {icon}
+      </span>
+      <span className="whitespace-nowrap">{children}</span>
+    </button>
+  );
 }
 
 export function QuickFilterBar({
@@ -22,53 +63,42 @@ export function QuickFilterBar({
   onToggleWeatherOnly,
   onResetFilters,
 }: QuickFilterBarProps) {
+  const anyOn = criticalOnly || activeOnly || weatherOnly;
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl border border-line/80 bg-panel/75 backdrop-blur-md shadow-lg">
-      <button
-        type="button"
+    <div className="glass pointer-events-auto flex items-center gap-1 rounded-panel p-1">
+      <Chip
+        active={criticalOnly}
         onClick={onToggleCriticalOnly}
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition ${
-          criticalOnly
-            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm'
-            : 'text-faint hover:text-ink hover:bg-hover'
-        }`}
+        tone="var(--crit)"
+        icon={<AlertOctagon className="h-3.5 w-3.5" />}
       >
-        <AlertOctagon className="h-3.5 w-3.5 text-rose-400" />
-        <span>Critical Defects</span>
-      </button>
-
-      <button
-        type="button"
+        Critical only
+      </Chip>
+      <Chip
+        active={activeOnly}
         onClick={onToggleActiveOnly}
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition ${
-          activeOnly
-            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-sm'
-            : 'text-faint hover:text-ink hover:bg-hover'
-        }`}
+        tone="var(--accent)"
+        icon={<Bus className="h-3.5 w-3.5" />}
       >
-        <Bus className="h-3.5 w-3.5 text-blue-400" />
-        <span>Active Fleet Only</span>
-      </button>
-
-      <button
-        type="button"
+        Open cases
+      </Chip>
+      <Chip
+        active={weatherOnly}
         onClick={onToggleWeatherOnly}
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition ${
-          weatherOnly
-            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm'
-            : 'text-faint hover:text-ink hover:bg-hover'
-        }`}
+        tone="var(--water)"
+        icon={<CloudRain className="h-3.5 w-3.5" />}
       >
-        <CloudRain className="h-3.5 w-3.5 text-cyan-400" />
-        <span>Rain & Radar</span>
-      </button>
+        Rain radar
+      </Chip>
 
-      {(criticalOnly || activeOnly || weatherOnly) && (
+      {anyOn && (
         <button
           type="button"
           onClick={onResetFilters}
-          title="Reset quick filters"
-          className="p-1 text-faint hover:text-ink transition"
+          title="Clear quick filters"
+          aria-label="Clear quick filters"
+          className="ml-0.5 rounded-lg p-1.5 text-faint transition-colors hover:bg-hover/60 hover:text-ink"
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </button>
