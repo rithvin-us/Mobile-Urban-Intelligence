@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import type { DetectionEvent, Bus, EventStatus } from '@/types';
-import { X, ExternalLink, ShieldAlert, Cpu, MapPin, Calendar, CheckCircle } from 'lucide-react';
+import { X, ExternalLink, ShieldAlert, Cpu, MapPin, Calendar, CheckCircle, Video, Camera, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { eventTypeLabel, SEVERITY_LABELS, fullTimestamp } from '@/lib/format';
 import { API_BASE_URL } from '@/lib/api';
@@ -60,6 +60,12 @@ const BOX_STYLES: Record<string, BoxStyle> = {
     badge: 'bg-purple-600 text-ink font-bold',
     label: 'ROAD INCIDENT',
   },
+  DEFAULT: {
+    border: 'border-blue-500/90',
+    bg: 'bg-blue-500/15',
+    badge: 'bg-blue-600 text-white font-bold',
+    label: 'MUNICIPAL HAZARD',
+  },
 };
 
 const DEFAULT_BOX_STYLE: BoxStyle = {
@@ -76,6 +82,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
   onStatusChange,
 }) => {
   const [imageError, setImageError] = useState(false);
+  const [activeTab, setActiveTab] = useState<'snapshot' | 'video'>('snapshot');
   const busNumber = reportingBus?.bus_number ?? event.bus_id;
   const boxStyle = BOX_STYLES[event.event_type] || DEFAULT_BOX_STYLE;
 
@@ -102,58 +109,128 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({
   };
 
   const imageSrc = getResolvedImageUrl();
+  const videoUrl = '/evidence/annotated_dashcam_output.mp4';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
       {/* Sleek Compact Popup Overlay */}
-      <div className="relative w-full max-w-md glass rounded-2xl shadow-2xl overflow-hidden text-ink flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-lg glass rounded-2xl shadow-2xl overflow-hidden text-ink flex flex-col animate-in fade-in zoom-in-95 duration-150">
         
         {/* Compact Popup Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-line bg-raised">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-amber-400" />
             <h3 className="text-sm font-bold text-ink tracking-tight">
-              Evidence Snapshot: {eventTypeLabel(event.event_type)}
+              Evidence: {eventTypeLabel(event.event_type)}
             </h3>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg bg-raised text-faint hover:text-ink hover:bg-hover transition"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* View Mode Tabs */}
+            <div className="flex items-center bg-canvas rounded-lg p-0.5 border border-line text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab('snapshot')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors ${
+                  activeTab === 'snapshot'
+                    ? 'bg-accent text-white font-medium shadow-sm'
+                    : 'text-dim hover:text-ink'
+                }`}
+              >
+                <Camera className="h-3.5 w-3.5" />
+                <span>Snapshot</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('video')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-colors ${
+                  activeTab === 'video'
+                    ? 'bg-rose-600 text-white font-medium shadow-sm'
+                    : 'text-dim hover:text-ink'
+                }`}
+              >
+                <Video className="h-3.5 w-3.5 text-rose-300" />
+                <span>AI Video</span>
+              </button>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg bg-raised text-faint hover:text-ink hover:bg-hover transition"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Evidence Content Viewport */}
         <div className="p-4 space-y-3">
-          <div className="relative w-full h-56 rounded-xl overflow-hidden border border-line bg-canvas">
-            <img
-              src={imageError ? (LOCAL_SAMPLE_IMAGES[event.event_type] || '/evidence/default_sample.jpg') : imageSrc}
-              alt={`Evidence for ${event.event_type}`}
-              className="w-full h-full object-cover"
-              onError={() => {
-                if (!imageError) setImageError(true);
-              }}
-            />
-            {/* AI Bounding Box overlay over real photo when not pre-rendered in base64 */}
-            {!imageSrc.startsWith('data:image/') && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
-                <div className={`border-2 ${boxStyle.border} ${boxStyle.bg} p-3 rounded-lg shadow-xl flex flex-col items-center backdrop-blur-[1px]`}>
-                  <span className={`text-[10px] font-mono uppercase tracking-wide px-2 py-0.5 rounded mb-1 ${boxStyle.badge}`}>
-                    [{boxStyle.label}] {(event.confidence * 100).toFixed(0)}% CONFIDENCE
-                  </span>
-                  <span className="text-[10px] font-mono text-dim">
-                    GPS: {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
-                  </span>
+          <div className="relative w-full h-64 rounded-xl overflow-hidden border border-line bg-canvas flex items-center justify-center">
+            {activeTab === 'video' ? (
+              <div className="relative w-full h-full bg-black flex flex-col items-center justify-center">
+                <video
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="w-full h-full object-contain"
+                >
+                  <source src={`${videoUrl}?v=2`} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute top-2 left-2 bg-panel/90 backdrop-blur px-2 py-0.5 rounded text-[10px] font-mono text-rose-400 border border-rose-900/50 flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                  ANNOTATED DASHCAM FEED
                 </div>
+                <a
+                  href={videoUrl}
+                  download="annotated_dashcam_output.mp4"
+                  className="absolute top-2 right-2 bg-panel/90 hover:bg-hover backdrop-blur px-2 py-0.5 rounded text-[10px] font-mono text-dim hover:text-ink border border-line flex items-center gap-1 transition"
+                  title="Download Annotated Video MP4"
+                >
+                  <Download className="h-3 w-3" />
+                  <span>MP4</span>
+                </a>
               </div>
+            ) : (
+              <>
+                <img
+                  src={imageError ? (LOCAL_SAMPLE_IMAGES[event.event_type] || '/evidence/default_sample.jpg') : imageSrc}
+                  alt={`Evidence for ${event.event_type}`}
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    if (!imageError) setImageError(true);
+                  }}
+                />
+                {/* AI Bounding Box overlay over real photo when not pre-rendered in base64 */}
+                {!imageSrc.startsWith('data:image/') && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
+                    <div className={`border-2 ${boxStyle.border} ${boxStyle.bg} p-3 rounded-lg shadow-xl flex flex-col items-center backdrop-blur-[1px]`}>
+                      <span className={`text-[10px] font-mono uppercase tracking-wide px-2 py-0.5 rounded mb-1 ${boxStyle.badge}`}>
+                        [{boxStyle.label}] {(event.confidence * 100).toFixed(0)}% CONFIDENCE
+                      </span>
+                      <span className="text-[10px] font-mono text-dim">
+                        GPS: {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <div className="absolute top-2 left-2 bg-panel backdrop-blur px-2 py-1 rounded text-[10px] font-mono text-cyan-400 border border-line">
+                  CAM-01 OPTICAL SNAPSHOT
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('video')}
+                  className="absolute bottom-2 left-2 bg-panel/95 hover:bg-hover backdrop-blur px-2.5 py-1 rounded text-[10px] font-medium text-amber-400 border border-amber-500/40 flex items-center gap-1.5 transition shadow-lg"
+                >
+                  <Video className="h-3 w-3 text-amber-400" />
+                  <span>Watch Annotated Video</span>
+                </button>
+                <div className="absolute bottom-2 right-2 bg-panel backdrop-blur px-2 py-0.5 rounded text-[9px] font-mono text-emerald-400 border border-line">
+                  AI VERIFIED
+                </div>
+              </>
             )}
-            <div className="absolute top-2 left-2 bg-panel backdrop-blur px-2 py-1 rounded text-[10px] font-mono text-cyan-400 border border-line">
-              CAM-01 OPTICAL SNAPSHOT
-            </div>
-            <div className="absolute bottom-2 right-2 bg-panel backdrop-blur px-2 py-0.5 rounded text-[9px] font-mono text-emerald-400 border border-line">
-              AI VERIFIED
-            </div>
           </div>
 
           {/* Metadata Overview Grid */}

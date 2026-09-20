@@ -1,0 +1,391 @@
+{
+  "input_video": "WhatsApp Video 2026-09-20 at 7.52.41 PM.mp4",
+  "annotated_video": "edge/data/annotated_dashcam_output.mp4",
+  "web_accessible_video": "/evidence/annotated_dashcam_output.mp4",
+  "resolution": "848x478",
+  "fps": 24.0,
+  "total_frames": 240,
+  "duration_seconds": 10.0,
+  "file_size_mb": 5.54,
+  "total_hazard_detections": 969,
+  "class_breakdown": {
+    "POTHOLE": 223,
+    "ROAD_DAMAGE": 109,
+    "TRAFFIC_SIGN": 227,
+    "ZEBRA_CROSSING": 153,
+    "WATERLOGGING": 101,
+    "PEDESTRIAN_RISK": 156
+  },
+  "keyframe_timeline": [
+    {
+      "frame": 0,
+      "time_sec": 0.0,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.91,
+          "desc": "Deep asphalt crater (8.5 cm)"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.84,
+          "desc": "Alligator cracking & raveling"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.92,
+          "desc": "Intersection signal & lane sign"
+        }
+      ]
+    },
+    {
+      "frame": 12,
+      "time_sec": 0.5,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.89,
+          "desc": "Deep asphalt crater (8.5 cm)"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.82,
+          "desc": "Alligator cracking & raveling"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.9,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.88,
+          "desc": "Pedestrian crossing warning sign"
+        }
+      ]
+    },
+    {
+      "frame": 24,
+      "time_sec": 1.0,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.91,
+          "desc": "Deep asphalt crater (8.5 cm)"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.84,
+          "desc": "Alligator cracking & raveling"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.92,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.89,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.91,
+          "desc": "Pedestrian crossing warning sign"
+        }
+      ]
+    },
+    {
+      "frame": 36,
+      "time_sec": 1.5,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.93,
+          "desc": "Deep asphalt crater (8.5 cm)"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.86,
+          "desc": "Alligator cracking & raveling"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.94,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.9,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.9,
+          "desc": "Pedestrian crossing warning sign"
+        }
+      ]
+    },
+    {
+      "frame": 48,
+      "time_sec": 2.0,
+      "hazards": [
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.93,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.87,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.87,
+          "desc": "Pedestrian crossing warning sign"
+        }
+      ]
+    },
+    {
+      "frame": 60,
+      "time_sec": 2.5,
+      "hazards": [
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.9,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.86,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.88,
+          "desc": "Pedestrian crossing warning sign"
+        },
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.95,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        }
+      ]
+    },
+    {
+      "frame": 72,
+      "time_sec": 3.0,
+      "hazards": [
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.91,
+          "desc": "Intersection signal & lane sign"
+        },
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.89,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.9,
+          "desc": "Pedestrian crossing warning sign"
+        },
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.95,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.91,
+          "desc": "Pedestrian near flooded curb"
+        }
+      ]
+    },
+    {
+      "frame": 84,
+      "time_sec": 3.5,
+      "hazards": [
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.9,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "TRAFFIC_SIGN",
+          "conf": 0.91,
+          "desc": "Pedestrian crossing warning sign"
+        },
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.93,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.93,
+          "desc": "Pedestrian near flooded curb"
+        }
+      ]
+    },
+    {
+      "frame": 96,
+      "time_sec": 4.0,
+      "hazards": [
+        {
+          "type": "ZEBRA_CROSSING",
+          "conf": 0.88,
+          "desc": "Crosswalk markings (72% paint wear)"
+        },
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.92,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.95,
+          "desc": "Pedestrian near flooded curb"
+        }
+      ]
+    },
+    {
+      "frame": 108,
+      "time_sec": 4.5,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.95,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.93,
+          "desc": "Pedestrian near flooded curb"
+        }
+      ]
+    },
+    {
+      "frame": 120,
+      "time_sec": 5.0,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.96,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.91,
+          "desc": "Pedestrian near flooded curb"
+        }
+      ]
+    },
+    {
+      "frame": 132,
+      "time_sec": 5.5,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.93,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.92,
+          "desc": "Pedestrian near flooded curb"
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.92,
+          "desc": "Submerged pothole hazard"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.84,
+          "desc": "Broken road base & edge crumbling"
+        }
+      ]
+    },
+    {
+      "frame": 144,
+      "time_sec": 6.0,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.92,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.95,
+          "desc": "Pedestrian near flooded curb"
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.91,
+          "desc": "Submerged pothole hazard"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.86,
+          "desc": "Broken road base & edge crumbling"
+        }
+      ]
+    },
+    {
+      "frame": 156,
+      "time_sec": 6.5,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.94,
+          "desc": "Extensive standing flood (depth > 12 cm)"
+        },
+        {
+          "type": "PEDESTRIAN_RISK",
+          "conf": 0.94,
+          "desc": "Pedestrian near flooded curb"
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.88,
+          "desc": "Submerged pothole hazard"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.88,
+          "desc": "Broken road base & edge crumbling"
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.87,
+          "desc": "Repeated impact depression"
+        }
+      ]
+    },
+    {
+      "frame": 168,
+      "time_sec": 7.0,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.89,
+          "desc": "Submerged pothole hazard"
+        },
+        {
+          "type": "ROAD_DAMAGE",
+          "conf": 0.87,
+          "desc": "Broken road base & edge crumbling"
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.88,
+          "desc": "Repeated impact depression"
+        }
+      ]
+    }
+  ]
+}
