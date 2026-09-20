@@ -223,6 +223,7 @@ export const BusTelemetryModal: React.FC<BusTelemetryModalProps> = ({ bus, event
               longitude={bus.longitude}
               heading={bus.heading}
               className="w-full h-full"
+              onSwitchMode={(mode) => setViewMode(mode)}
             />
           )}
         </div>

@@ -193,7 +193,7 @@ export function LeftPanel({
           <HealthRow label="Telemetry ingest" value={health?.ingest ?? 'STOPPED'} />
           <div className="flex items-center justify-between gap-2 px-3 py-[5px]">
             <span className="text-[11px] text-faint">Dashboard sync</span>
-            <span className="tnum font-mono text-[11px] text-dim">
+            <span className="tnum font-mono text-[11px] text-dim" suppressHydrationWarning>
               {lastSync ? relativeTime(new Date(lastSync).toISOString(), now) : 'waiting'}
             </span>
           </div>

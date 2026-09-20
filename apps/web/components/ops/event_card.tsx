@@ -62,6 +62,7 @@ export function EventCard({
           event={event}
           reportingBus={reportingBus}
           onClose={() => setShowEvidenceModal(false)}
+          onStatusChange={onStatusChange}
         />
       )}
 
@@ -124,10 +125,10 @@ export function EventCard({
           <button
             type="button"
             onClick={() => setShowEvidenceModal(true)}
-            className="flex items-center justify-center gap-1.5 border border-line bg-raised px-2 py-[6px] text-[11px] text-dim transition-colors hover:border-[#2B3947] hover:text-ink cursor-pointer"
+            className="flex items-center justify-center gap-1.5 border border-cyan-500/50 bg-cyan-950/60 px-2 py-[6px] text-[11px] font-semibold text-cyan-300 transition-colors hover:border-cyan-400 hover:bg-cyan-900/80 cursor-pointer rounded shadow-sm"
           >
-            <ImageIcon className="h-3 w-3 text-cyan-400" aria-hidden />
-            Open evidence
+            <ImageIcon className="h-3.5 w-3.5 text-cyan-400" aria-hidden />
+            Open Evidence Portal
           </button>
 
           <ActionButton

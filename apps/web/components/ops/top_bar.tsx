@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bus as BusIcon, Maximize2, PanelLeft, PanelRight, Clock, Sun, Moon } from 'lucide-react';
 
 import type { FleetCounts, SystemHealth } from '@/types';
@@ -50,21 +50,31 @@ export function TopBar({
   onToggleRight,
   onFullscreen,
 }: TopBarProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const ingestTone =
     health?.ingest === 'RUNNING' ? '#4F9D77' : health?.ingest === 'STALE' ? '#C9922F' : '#C7564C';
 
-  const formattedTime = new Date(now).toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+  const formattedTime = mounted
+    ? new Date(now).toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : '--:--:--';
 
-  const formattedDate = new Date(now).toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  const formattedDate = mounted
+    ? new Date(now).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '';
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-4 border-b border-line bg-panel px-3">
@@ -94,14 +104,20 @@ export function TopBar({
         {/* Live Operational Clock */}
         <div className="flex items-center gap-1.5 rounded border border-line px-2.5 py-1 font-mono text-[11px] text-ink bg-canvas/40">
           <Clock className="h-3.5 w-3.5 text-accent" aria-hidden />
-          <span className="font-semibold tracking-wider">{formattedTime}</span>
-          <span className="text-[10px] text-faint hidden lg:inline">| {formattedDate}</span>
+          <span className="font-semibold tracking-wider" suppressHydrationWarning>
+            {formattedTime}
+          </span>
+          {mounted && formattedDate ? (
+            <span className="text-[10px] text-faint hidden lg:inline" suppressHydrationWarning>
+              | {formattedDate}
+            </span>
+          ) : null}
         </div>
 
         <div className="hidden items-center gap-2 sm:flex">
           <Dot color={ingestTone} pulse={health?.ingest === 'RUNNING'} />
-          <span className="tnum font-mono text-[11px] text-dim">
-            {lastSync ? relativeTime(new Date(lastSync).toISOString(), now) : 'connecting'}
+          <span className="tnum font-mono text-[11px] text-dim" suppressHydrationWarning>
+            {mounted && lastSync ? relativeTime(new Date(lastSync).toISOString(), now) : 'connecting'}
           </span>
         </div>
 

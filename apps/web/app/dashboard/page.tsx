@@ -467,7 +467,7 @@ export default function DashboardPage() {
               onFullscreen={() => mapRef.current?.toggleFullscreen()}
             />
 
-            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-end gap-2">
+            <div className="pointer-events-none absolute bottom-4 left-12 right-4 z-30 flex flex-wrap items-end gap-3">
               {selectedBus && (
                 <BusCard
                   bus={selectedBus}

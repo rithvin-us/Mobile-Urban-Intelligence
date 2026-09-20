@@ -66,6 +66,7 @@ def _build_payload(
             "route_name": bus.route_name,
             "speed_kmph": round(bus.speed, 1),
             "detection_source": source,
+            "model": "YOLOv8-Multilabel-150epochs",
         },
     }
 

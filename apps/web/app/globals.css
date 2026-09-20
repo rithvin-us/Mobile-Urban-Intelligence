@@ -146,9 +146,13 @@ body {
   animation: pulse-dot 2.4s ease-in-out infinite;
 }
 
-/* Suppress Google Maps tile error overlays ("Zoom Level Not Supported") */
+/* Suppress Google Maps tile error overlays ("Zoom Level Not Supported" & Auth Dialogs) */
 .gm-err-container,
 .gm-err-content,
-.gm-err-icon {
+.gm-err-icon,
+.gm-err-message,
+.gm-style-pbc,
+div[aria-modal="true"]:has(.gm-err-message) {
   display: none !important;
 }
+
