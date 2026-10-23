@@ -115,17 +115,9 @@ function buildEdgePipeline(targetFile)
 model = 'edge_pipeline_latency';
 prepareModel(model, targetFile);
 
-% Per-stage latency budget, in seconds. The inference figure is for a TensorRT
-% INT8 YOLOv8n engine on a Jetson Orin Nano; the uplink figure is a typical
-% Indian 4G LTE round trip, which dominates everything the edge unit does.
-stages = {
-    'Camera Capture',      0.005, 'Sony STARVIS, 1080p 60 FPS'
-    'Edge Inference',      0.022, 'TensorRT INT8 YOLOv8n, Jetson Orin Nano'
-    'Object Tracking',     0.004, 'ByteTrack multi-object association'
-    'Event Engine',        0.002, 'Severity grading and deduplication'
-    'LTE Uplink',          0.085, 'Quectel RM500Q, HTTPS POST to backend'
-    'Cloud Ingest',        0.012, 'FastAPI validation and PostGIS write'
-};
+% The budget lives in edge_stage_budget so the model and the published latency
+% chart read the same numbers.
+stages = edge_stage_budget();
 
 new_system(model);
 
@@ -136,9 +128,9 @@ set_param([model '/Frame Arrival'], ...
     'PulseType', 'Time based');
 
 previous = 'Frame Arrival';
-for k = 1:size(stages, 1)
-    name = stages{k, 1};
-    delaySeconds = stages{k, 2};
+for k = 1:height(stages)
+    name = stages.Name{k};
+    delaySeconds = stages.Seconds(k);
     buildStageSubsystem(model, name, delaySeconds);
     add_line(model, [previous '/1'], [name '/1']);
     previous = name;
@@ -163,7 +155,7 @@ add_line(model, [previous '/1'],   'Latency Log/1');
 set_param(model, 'Solver', 'ode45', 'StopTime', '1', ...
     'SolverType', 'Variable-step', 'MaxStep', '0.0005');
 
-total = sum([stages{:, 2}]);
+total = sum(stages.Seconds);
 fprintf('  Modelled end-to-end latency budget: %.0f ms\n', total * 1000);
 
 finishModel(model, targetFile);
