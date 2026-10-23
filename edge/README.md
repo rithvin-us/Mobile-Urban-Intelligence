@@ -20,7 +20,7 @@ This directory defines the hardware interface and edge component structure for t
 
 ## Module Structure
 
-- **`inference/`**: Object detection models (YOLO / TensorRT) for road damage, potholes, traffic signs, and zebra crossings.
+- **`inference/`**: Object detection models. The trained YOLOv8 weights in `inference/models/multilabel_best.pt` cover three classes — `pothole`, `waterlogging` and `cracks`, mapped to the platform's `POTHOLE`, `WATERLOGGING` and `ROAD_DAMAGE` event types. The backend accepts five further event types (traffic, signage, zebra crossings, pedestrian risk, incidents) that the simulator produces today and a later training run is intended to cover.
 - **`tracking/`**: Object tracking algorithms (DeepSORT / ByteTrack) to prevent double counting across consecutive camera frames.
 - **`gps/`**: NMEA GPS hardware reader providing real-time bus lat/long, speed, and heading.
 - **`event_engine/`**: Event triggering rules that aggregate detections, compute confidence, and serialize events for API submission.

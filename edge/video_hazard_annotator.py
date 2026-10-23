@@ -1,12 +1,18 @@
 """
-Live Video Road Difficulty AI Detector & Video Annotator
-Processes moving bus dashcam video and outputs an annotated video marking:
-  - Potholes (Class: POTHOLE)
-  - Waterlogging (Class: WATERLOGGING)
-  - Faded Zebra Crossing (Class: ZEBRA_CROSSING)
-  - Damaged Road / Cracks (Class: ROAD_DAMAGE)
-  - Pedestrian Safety Risk (Class: PEDESTRIAN_RISK)
-  - Damaged / Standard Traffic Signs & Signals (Class: TRAFFIC_SIGN)
+Live Video Road Hazard AI Detector and Video Annotator
+
+Runs the trained YOLOv8 multilabel model over a bus dashcam clip and renders its
+detections. The model is trained on three classes, so three are what it can
+report:
+
+  - Potholes               (Class: POTHOLE)
+  - Waterlogging           (Class: WATERLOGGING)
+  - Cracked / damaged road (Class: ROAD_DAMAGE)
+
+The wider platform ingests more event types than this (see EventType in
+apps/api/app/schemas/event.py), and the fleet simulator produces them, but only
+these three come from the vision model. Anything else would have to come from a
+future training run, not from this file.
 """
 
 import os
@@ -16,6 +22,7 @@ import argparse
 import logging
 import shutil
 import subprocess
+import json
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict, Any, Optional
 
@@ -40,6 +47,16 @@ for p in [
             except Exception:
                 pass
 
+# The annotator runs from the repository root or from edge/, so the root goes on
+# the path before the edge package is imported.
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+from edge.inference.model_registry import ModelRegistry
+# Imported for its registration side effect: the detector registers itself with
+# ModelRegistry on import, so the lookup below would fail without this.
+from edge.inference.multilabel_detector import MultilabelYoloDetector  # noqa: F401
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("VideoHazardAnnotator")
 
@@ -63,24 +80,6 @@ CLASS_STYLES = {
         "severity": "MEDIUM",
         "badge_bg": (0, 100, 200),
     },
-    "ZEBRA_CROSSING": {
-        "color": (88, 209, 48),      # Mint Green BGR: #30D158
-        "label": "FADED ZEBRA CROSSING",
-        "severity": "MEDIUM",
-        "badge_bg": (40, 140, 30),
-    },
-    "PEDESTRIAN_RISK": {
-        "color": (242, 90, 191),     # Electric Purple/Magenta BGR: #BF5AF2
-        "label": "PEDESTRIAN RISK",
-        "severity": "HIGH",
-        "badge_bg": (160, 40, 120),
-    },
-    "TRAFFIC_SIGN": {
-        "color": (255, 132, 10),     # Cobalt Blue BGR: #0A84FF
-        "label": "TRAFFIC SIGN",
-        "severity": "LOW",
-        "badge_bg": (180, 80, 0),
-    },
 }
 
 
@@ -95,256 +94,153 @@ class TrackedHazard:
     smooth_bbox: Optional[Tuple[float, float, float, float]] = None
 
 
-class VideoHazardDetector:
+class YoloHazardDetector:
     """
-    Multimodal detector engine that tracks all 6 municipal road difficulties
-    throughout the bus dashcam journey.
+    Runs the trained YOLOv8 multilabel model over each frame.
+
+    This replaces an earlier implementation that replayed hand-authored bounding
+    box trajectories and labelled them as AI detections. The output here is
+    whatever the weights actually produce: fewer boxes, less tidy motion, and
+    nothing at all on frames where the model sees nothing.
+
+    The model is trained on three classes, so three is what can appear:
+
+        pothole -> POTHOLE,  waterlogging -> WATERLOGGING,  cracks -> ROAD_DAMAGE
+
+    If Ultralytics or the weights cannot be loaded this raises instead of
+    degrading. The underlying detector has a built-in fallback that emits
+    plausible-looking placeholder boxes, which is useful for exercising the API
+    offline but must never reach a rendered video that anybody reads as
+    detection output.
     """
 
-    def __init__(self):
-        # Ground-truth scene hazard tracks calibrated to bus_dashcam_input.mp4
-        # (848x478 resolution, 240 frames, 10.0 seconds @ 24fps)
-        self.scenarios = self._init_scene_tracks()
+    def __init__(
+        self,
+        weights: Optional[str] = None,
+        confidence_threshold: float = 0.35,
+        max_age: int = 6,
+        iou_threshold: float = 0.30,
+    ):
+        self.confidence_threshold = confidence_threshold
+        self.max_age = max_age
+        self.iou_threshold = iou_threshold
 
-    def _init_scene_tracks(self) -> List[Dict[str, Any]]:
-        """
-        Calibrated spatial-temporal tracks for the dashcam video
-        capturing potholes, waterlogging, zebra crossing, damaged road,
-        pedestrians, and traffic signs as the vehicle advances.
-        """
-        tracks = [
-            # 1. Potholes ahead in driving lane (frames 0 to 45)
-            {
-                "class_name": "POTHOLE",
-                "start_frame": 0,
-                "end_frame": 45,
-                "traj": lambda t: (
-                    int(320 - t * 40),
-                    int(270 + t * 75),
-                    int(480 - t * 20),
-                    int(335 + t * 90),
-                ),
-                "confidence": 0.91,
-                "detail": "Deep asphalt crater (8.5 cm)",
-            },
-            # 2. Road surface fractures / cracks flanking pothole 1
-            {
-                "class_name": "ROAD_DAMAGE",
-                "start_frame": 0,
-                "end_frame": 40,
-                "traj": lambda t: (
-                    int(250 - t * 30),
-                    int(280 + t * 65),
-                    int(340 - t * 35),
-                    int(340 + t * 80),
-                ),
-                "confidence": 0.84,
-                "detail": "Alligator cracking & raveling",
-            },
-            # 3. Traffic light & overhead sign gantry (frames 0 to 80)
-            {
-                "class_name": "TRAFFIC_SIGN",
-                "start_frame": 0,
-                "end_frame": 75,
-                "traj": lambda t: (
-                    int(460 + t * 35),
-                    int(115 - t * 25),
-                    int(495 + t * 50),
-                    int(165 - t * 15),
-                ),
-                "confidence": 0.92,
-                "detail": "Intersection signal & lane sign",
-            },
-            # 4. Faded Zebra Crossing - Initial Approach (frames 20 to 110)
-            {
-                "class_name": "ZEBRA_CROSSING",
-                "start_frame": 18,
-                "end_frame": 105,
-                "traj": lambda t: (
-                    int(10 - t * 10),
-                    int(325 + t * 35),
-                    int(750 + t * 85),
-                    int(385 + t * 80),
-                ),
-                "confidence": 0.88,
-                "detail": "Crosswalk markings (72% paint wear)",
-            },
-            # 5. Right side traffic sign on pole (pedestrian crossing sign) (frames 0 to 100)
-            {
-                "class_name": "TRAFFIC_SIGN",
-                "start_frame": 5,
-                "end_frame": 95,
-                "traj": lambda t: (
-                    int(550 + t * 230),
-                    int(170 - t * 75),
-                    int(585 + t * 255),
-                    int(220 - t * 60),
-                ),
-                "confidence": 0.89,
-                "detail": "Pedestrian crossing warning sign",
-            },
-            # 6. Waterlogging / Urban Flooding (frames 65 to 165)
-            {
-                "class_name": "WATERLOGGING",
-                "start_frame": 60,
-                "end_frame": 160,
-                "traj": lambda t: (
-                    int(270 - t * 130),
-                    int(235 + t * 35),
-                    int(650 + t * 160),
-                    int(320 + t * 90),
-                ),
-                "confidence": 0.94,
-                "detail": "Extensive standing flood (depth > 12 cm)",
-            },
-            # 7. Pedestrian Safety Risk - Pedestrian on right sidewalk (frames 70 to 165)
-            {
-                "class_name": "PEDESTRIAN_RISK",
-                "start_frame": 70,
-                "end_frame": 165,
-                "traj": lambda t: (
-                    int(505 + t * 140),
-                    int(208 + t * 40),
-                    int(520 + t * 170),
-                    int(248 + t * 85),
-                ),
-                "confidence": 0.93,
-                "detail": "Pedestrian near flooded curb",
-            },
-            # 8. Potholes in flooded intersection (frames 120 to 185)
-            {
-                "class_name": "POTHOLE",
-                "start_frame": 125,
-                "end_frame": 185,
-                "traj": lambda t: (
-                    int(280 - t * 70),
-                    int(290 + t * 50),
-                    int(410 - t * 60),
-                    int(350 + t * 70),
-                ),
-                "confidence": 0.90,
-                "detail": "Submerged pothole hazard",
-            },
-            # 9. Damaged Road surface in intersection center (frames 125 to 195)
-            {
-                "class_name": "ROAD_DAMAGE",
-                "start_frame": 128,
-                "end_frame": 195,
-                "traj": lambda t: (
-                    int(420 + t * 40),
-                    int(270 + t * 45),
-                    int(610 + t * 90),
-                    int(330 + t * 75),
-                ),
-                "confidence": 0.86,
-                "detail": "Broken road base & edge crumbling",
-            },
-            # 10. Secondary Pothole - Left wheel path (frames 150 to 220)
-            {
-                "class_name": "POTHOLE",
-                "start_frame": 150,
-                "end_frame": 220,
-                "traj": lambda t: (
-                    int(360 - t * 50),
-                    int(265 + t * 60),
-                    int(480 - t * 30),
-                    int(315 + t * 80),
-                ),
-                "confidence": 0.89,
-                "detail": "Repeated impact depression",
-            },
-            # 11. Pedestrian Crossing / Faded Zebra Crossing - Far side (frames 175 to 240)
-            {
-                "class_name": "ZEBRA_CROSSING",
-                "start_frame": 175,
-                "end_frame": 240,
-                "traj": lambda t: (
-                    int(320 - t * 180),
-                    int(240 + t * 70),
-                    int(610 + t * 200),
-                    int(280 + t * 95),
-                ),
-                "confidence": 0.91,
-                "detail": "Intersection zebra markings (faded)",
-            },
-            # 12. Pedestrian Safety Risk - Pedestrians waiting on right curb (frames 180 to 240)
-            {
-                "class_name": "PEDESTRIAN_RISK",
-                "start_frame": 180,
-                "end_frame": 240,
-                "traj": lambda t: (
-                    int(685 + t * 25),
-                    int(190 + t * 35),
-                    int(730 + t * 45),
-                    int(255 + t * 70),
-                ),
-                "confidence": 0.95,
-                "detail": "2 pedestrians waiting near moving traffic",
-            },
-            # 13. Traffic Sign - Yellow Diamond Priority Sign & Signal Pole (frames 180 to 240)
-            {
-                "class_name": "TRAFFIC_SIGN",
-                "start_frame": 180,
-                "end_frame": 240,
-                "traj": lambda t: (
-                    int(740 + t * 50),
-                    int(90 - t * 10),
-                    int(790 + t * 55),
-                    int(180 + t * 20),
-                ),
-                "confidence": 0.94,
-                "detail": "Priority road sign & signal post",
-            },
-            # 14. Severe Crater Pothole (frames 195 to 240)
-            {
-                "class_name": "POTHOLE",
-                "start_frame": 195,
-                "end_frame": 240,
-                "traj": lambda t: (
-                    int(510 + t * 50),
-                    int(310 + t * 50),
-                    int(660 + t * 90),
-                    int(380 + t * 80),
-                ),
-                "confidence": 0.93,
-                "detail": "Large crater right in wheel path (11.0 cm)",
-            },
-        ]
-        return tracks
+        self.detector = ModelRegistry.create("multilabel_yolo")
+        self.detector.load_model(weights)
+
+        if not getattr(self.detector, "is_ultralytics_loaded", False):
+            raise RuntimeError(
+                "Ultralytics/YOLO weights could not be loaded, so no real inference is "
+                "possible. Install the edge requirements (pip install -r edge/requirements.txt) "
+                "and confirm edge/inference/models/multilabel_best.pt is present. Refusing to "
+                "annotate with placeholder detections."
+            )
+
+        # Open tracks, each a dict of bbox, class, confidence and age.
+        self._tracks: List[Dict[str, Any]] = []
+        self._next_id = 1
+
+    @staticmethod
+    def _iou(a: Tuple[int, int, int, int], b: Tuple[int, int, int, int]) -> float:
+        ax1, ay1, ax2, ay2 = a
+        bx1, by1, bx2, by2 = b
+        ix1, iy1 = max(ax1, bx1), max(ay1, by1)
+        ix2, iy2 = min(ax2, bx2), min(ay2, by2)
+        iw, ih = max(0, ix2 - ix1), max(0, iy2 - iy1)
+        intersection = iw * ih
+        if intersection == 0:
+            return 0.0
+        area_a = max(1, (ax2 - ax1) * (ay2 - ay1))
+        area_b = max(1, (bx2 - bx1) * (by2 - by1))
+        return intersection / float(area_a + area_b - intersection)
 
     def detect_frame(self, frame: np.ndarray, frame_idx: int) -> List[TrackedHazard]:
-        """Returns detected hazards for the given frame index."""
-        h, w = frame.shape[:2]
-        hazards = []
+        """
+        Detects hazards in one frame and associates them with recent detections.
 
-        for tr in self.scenarios:
-            s_f = tr["start_frame"]
-            e_f = tr["end_frame"]
-            if s_f <= frame_idx <= e_f:
-                span = max(1, e_f - s_f)
-                t = (frame_idx - s_f) / float(span)
-                x1, y1, x2, y2 = tr["traj"](t)
+        A detector run per frame on its own flickers: a pothole found on frame 40
+        and 42 but missed on 41 produces a box that blinks. Carrying an unmatched
+        track for a few frames by greedy IoU association is the same idea as the
+        ByteTrack stage the edge pipeline is specified to use, reduced to what
+        this offline renderer needs. Nothing is invented: a track only exists
+        because the model detected it, and it expires after max_age frames.
+        """
+        height, width = frame.shape[:2]
 
-                # Clamp to frame boundaries
-                x1 = max(0, min(w - 10, x1))
-                y1 = max(0, min(h - 10, y1))
-                x2 = max(x1 + 10, min(w - 2, x2))
-                y2 = max(y1 + 10, min(h - 2, y2))
+        detections: List[Dict[str, Any]] = []
+        for result in self.detector.infer(frame, confidence_threshold=self.confidence_threshold):
+            box = result.bbox
+            x1 = max(0, min(width - 2, int(box.xmin)))
+            y1 = max(0, min(height - 2, int(box.ymin)))
+            x2 = max(x1 + 2, min(width - 1, int(box.xmax)))
+            y2 = max(y1 + 2, min(height - 1, int(box.ymax)))
 
-                # Slight confidence breathing for realistic edge AI inference
-                noise = (np.sin(frame_idx * 0.4 + s_f) * 0.02)
-                conf = round(min(0.99, max(0.70, tr["confidence"] + noise)), 2)
+            metadata = result.metadata or {}
+            detections.append({
+                "class_name": result.class_name,
+                "bbox": (x1, y1, x2, y2),
+                "confidence": float(result.confidence),
+                "detail": metadata.get("detection_label", result.class_name.lower()),
+            })
 
-                hazards.append(
-                    TrackedHazard(
-                        class_name=tr["class_name"],
-                        bbox=(x1, y1, x2, y2),
-                        confidence=conf,
-                        detail=tr["detail"],
-                        start_frame=s_f,
-                        end_frame=e_f,
-                    )
+        # Greedy association of this frame's detections to existing tracks.
+        unmatched = list(range(len(detections)))
+        for track in self._tracks:
+            best_iou = self.iou_threshold
+            best_idx = None
+            for idx in unmatched:
+                detection = detections[idx]
+                if detection["class_name"] != track["class_name"]:
+                    continue
+                score = self._iou(track["bbox"], detection["bbox"])
+                if score >= best_iou:
+                    best_iou = score
+                    best_idx = idx
+
+            if best_idx is None:
+                track["age"] += 1
+            else:
+                detection = detections[best_idx]
+                track["bbox"] = detection["bbox"]
+                track["confidence"] = detection["confidence"]
+                track["detail"] = detection["detail"]
+                track["age"] = 0
+                track["hits"] += 1
+                track["last_seen"] = frame_idx
+                unmatched.remove(best_idx)
+
+        for idx in unmatched:
+            detection = detections[idx]
+            self._tracks.append({
+                "id": self._next_id,
+                "class_name": detection["class_name"],
+                "bbox": detection["bbox"],
+                "confidence": detection["confidence"],
+                "detail": detection["detail"],
+                "age": 0,
+                "hits": 1,
+                "first_seen": frame_idx,
+                "last_seen": frame_idx,
+            })
+            self._next_id += 1
+
+        self._tracks = [t for t in self._tracks if t["age"] <= self.max_age]
+
+        hazards: List[TrackedHazard] = []
+        for track in self._tracks:
+            # Only classes the model was trained on can be styled and drawn.
+            if track["class_name"] not in CLASS_STYLES:
+                continue
+            hazards.append(
+                TrackedHazard(
+                    class_name=track["class_name"],
+                    bbox=track["bbox"],
+                    confidence=round(track["confidence"], 2),
+                    detail=track["detail"],
+                    start_frame=track["first_seen"],
+                    end_frame=track["last_seen"],
                 )
+            )
 
         return hazards
 
@@ -357,7 +253,7 @@ class LiveVideoAnnotator:
 
     def __init__(self, bus_id: str = "BUS-005"):
         self.bus_id = bus_id
-        self.detector = VideoHazardDetector()
+        self.detector = YoloHazardDetector()
 
     def draw_corner_rect(
         self,
@@ -499,7 +395,7 @@ class LiveVideoAnnotator:
         cv2.putText(img, gps_str, (w - 300, 20), font, 0.38, (180, 195, 210), 1, cv2.LINE_AA)
 
         # 2. Bottom Critical Alert Bar (When hazards are present)
-        has_critical = any(hz.class_name in ["POTHOLE", "WATERLOGGING", "PEDESTRIAN_RISK"] for hz in hazards)
+        has_critical = any(hz.class_name in ["POTHOLE", "WATERLOGGING"] for hz in hazards)
         if has_critical:
             bot_y = h - 24
             bot_overlay = img.copy()
@@ -557,6 +453,9 @@ class LiveVideoAnnotator:
         frame_idx = 0
         total_detections_count = 0
         class_stats: Dict[str, int] = {}
+        # Sampled every half second, for the summary written alongside the video.
+        keyframe_timeline: List[Dict[str, Any]] = []
+        keyframe_stride = max(1, int(round(fps / 2.0)))
         start_time = time.time()
 
         logger.info("[Annotator] Processing video frames with lively hazard detection...")
@@ -569,6 +468,20 @@ class LiveVideoAnnotator:
             # 1. Run Hazard Detection for current frame
             hazards = self.detector.detect_frame(frame, frame_idx)
             total_detections_count += len(hazards)
+
+            if frame_idx % keyframe_stride == 0 and hazards:
+                keyframe_timeline.append({
+                    "frame": frame_idx,
+                    "time_sec": round(frame_idx / fps, 2),
+                    "hazards": [
+                        {
+                            "type": hz.class_name,
+                            "conf": round(float(hz.confidence), 2),
+                            "bbox": list(hz.bbox),
+                        }
+                        for hz in hazards
+                    ],
+                })
 
             # 2. Draw Annotations for each hazard
             for hz in hazards:
@@ -632,11 +545,15 @@ class LiveVideoAnnotator:
 
         return {
             "output_path": output_path,
+            "input_path": input_path,
+            "resolution": f"{width}x{height}",
+            "fps": fps,
             "total_frames": frame_idx,
             "duration_sec": frame_idx / fps,
             "size_mb": round(out_size_mb, 2),
             "class_stats": class_stats,
             "total_detections": total_detections_count,
+            "keyframe_timeline": keyframe_timeline,
         }
 
 
@@ -696,10 +613,39 @@ def main():
         default="BUS-005",
         help="Transit fleet bus ID for telemetry HUD",
     )
+    parser.add_argument(
+        "--summary",
+        default="edge/data/annotated_dashcam_output_summary.json",
+        help="Path to write the run summary JSON ('none' to skip)",
+    )
     args = parser.parse_args()
 
     annotator = LiveVideoAnnotator(bus_id=args.bus_id)
-    annotator.process_video(args.input, args.output)
+    result = annotator.process_video(args.input, args.output)
+
+    # The summary is written from this run's own detections. It used to be a
+    # hand-authored file, which meant it could disagree with the video it
+    # claimed to describe.
+    if args.summary and args.summary.lower() != "none":
+        summary = {
+            "input_video": os.path.basename(result["input_path"]),
+            "annotated_video": result["output_path"],
+            "model": "YOLOv8 multilabel, edge/inference/models/multilabel_best.pt",
+            "model_classes": ["POTHOLE", "WATERLOGGING", "ROAD_DAMAGE"],
+            "confidence_threshold": annotator.detector.confidence_threshold,
+            "resolution": result["resolution"],
+            "fps": result["fps"],
+            "total_frames": result["total_frames"],
+            "duration_seconds": round(result["duration_sec"], 2),
+            "file_size_mb": result["size_mb"],
+            "total_hazard_detections": result["total_detections"],
+            "class_breakdown": result["class_stats"],
+            "keyframe_timeline": result["keyframe_timeline"],
+        }
+        os.makedirs(os.path.dirname(os.path.abspath(args.summary)), exist_ok=True)
+        with open(args.summary, "w", encoding="utf-8") as handle:
+            json.dump(summary, handle, indent=2)
+        logger.info("[Annotator] Wrote run summary to %s", args.summary)
 
 
 if __name__ == "__main__":

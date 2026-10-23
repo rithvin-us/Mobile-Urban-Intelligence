@@ -42,8 +42,9 @@ same defect into verified municipal work orders.
 
 | Capability | Status |
 | :--- | :--- |
-| Onboard multi-class hazard detection (YOLOv8) | Working, trained weights included |
-| Potholes, cracks, waterlogging, signage, zebra crossings, pedestrian risk | 6 classes |
+| Onboard hazard detection (YOLOv8) | Working, trained weights included |
+| Vision model classes: pothole, waterlogging, cracks / road damage | 3 trained |
+| Platform event types the backend ingests and the dashboard renders | 8 |
 | Spatio-temporal defect clustering into work orders | Working |
 | Live operator dashboard with GPU-accelerated map | Working |
 | 3D vehicle digital twin with sensor breakdown | Working |

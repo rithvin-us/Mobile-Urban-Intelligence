@@ -267,10 +267,10 @@ export function TopBar({
             <div className="p-3 bg-raised border-t border-line flex items-center justify-between text-xs text-dim">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-mono text-[10px] border border-rose-500/30">
-                  6 HAZARD CLASSES DETECTED
+                  3 TRAINED HAZARD CLASSES
                 </span>
                 <span className="hidden sm:inline text-[11px] text-faint">
-                  Potholes · Waterlogging · Zebra Crossings · Road Damage · Pedestrian Risk · Traffic Signs
+                  Potholes · Waterlogging · Road Damage — live YOLOv8 inference
                 </span>
               </div>
               <span className="font-mono text-[11px] text-emerald-400">848x478 @ 24FPS</span>

@@ -1,66 +1,37 @@
 {
-  "input_video": "WhatsApp Video 2026-09-20 at 7.52.41 PM.mp4",
+  "input_video": "bus_dashcam_input.mp4",
   "annotated_video": "edge/data/annotated_dashcam_output.mp4",
-  "web_accessible_video": "/evidence/annotated_dashcam_output.mp4",
+  "model": "YOLOv8 multilabel, edge/inference/models/multilabel_best.pt",
+  "model_classes": [
+    "POTHOLE",
+    "WATERLOGGING",
+    "ROAD_DAMAGE"
+  ],
+  "confidence_threshold": 0.35,
   "resolution": "848x478",
   "fps": 24.0,
   "total_frames": 240,
   "duration_seconds": 10.0,
-  "file_size_mb": 5.54,
-  "total_hazard_detections": 969,
+  "file_size_mb": 2.26,
+  "total_hazard_detections": 351,
   "class_breakdown": {
-    "POTHOLE": 223,
-    "ROAD_DAMAGE": 109,
-    "TRAFFIC_SIGN": 227,
-    "ZEBRA_CROSSING": 153,
-    "WATERLOGGING": 101,
-    "PEDESTRIAN_RISK": 156
+    "POTHOLE": 232,
+    "WATERLOGGING": 119
   },
   "keyframe_timeline": [
-    {
-      "frame": 0,
-      "time_sec": 0.0,
-      "hazards": [
-        {
-          "type": "POTHOLE",
-          "conf": 0.91,
-          "desc": "Deep asphalt crater (8.5 cm)"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.84,
-          "desc": "Alligator cracking & raveling"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.92,
-          "desc": "Intersection signal & lane sign"
-        }
-      ]
-    },
     {
       "frame": 12,
       "time_sec": 0.5,
       "hazards": [
         {
           "type": "POTHOLE",
-          "conf": 0.89,
-          "desc": "Deep asphalt crater (8.5 cm)"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.82,
-          "desc": "Alligator cracking & raveling"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.9,
-          "desc": "Intersection signal & lane sign"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.88,
-          "desc": "Pedestrian crossing warning sign"
+          "conf": 0.91,
+          "bbox": [
+            239,
+            312,
+            396,
+            369
+          ]
         }
       ]
     },
@@ -69,29 +40,14 @@
       "time_sec": 1.0,
       "hazards": [
         {
-          "type": "POTHOLE",
-          "conf": 0.91,
-          "desc": "Deep asphalt crater (8.5 cm)"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.84,
-          "desc": "Alligator cracking & raveling"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.92,
-          "desc": "Intersection signal & lane sign"
-        },
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.89,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.91,
-          "desc": "Pedestrian crossing warning sign"
+          "type": "WATERLOGGING",
+          "conf": 0.4,
+          "bbox": [
+            325,
+            256,
+            751,
+            347
+          ]
         }
       ]
     },
@@ -101,28 +57,33 @@
       "hazards": [
         {
           "type": "POTHOLE",
-          "conf": 0.93,
-          "desc": "Deep asphalt crater (8.5 cm)"
-        },
-        {
-          "type": "ROAD_DAMAGE",
           "conf": 0.86,
-          "desc": "Alligator cracking & raveling"
+          "bbox": [
+            269,
+            293,
+            376,
+            330
+          ]
         },
         {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.94,
-          "desc": "Intersection signal & lane sign"
+          "type": "POTHOLE",
+          "conf": 0.49,
+          "bbox": [
+            517,
+            292,
+            590,
+            319
+          ]
         },
         {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.9,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.9,
-          "desc": "Pedestrian crossing warning sign"
+          "type": "WATERLOGGING",
+          "conf": 0.59,
+          "bbox": [
+            363,
+            254,
+            753,
+            352
+          ]
         }
       ]
     },
@@ -131,123 +92,14 @@
       "time_sec": 2.0,
       "hazards": [
         {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.93,
-          "desc": "Intersection signal & lane sign"
-        },
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.87,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.87,
-          "desc": "Pedestrian crossing warning sign"
-        }
-      ]
-    },
-    {
-      "frame": 60,
-      "time_sec": 2.5,
-      "hazards": [
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.9,
-          "desc": "Intersection signal & lane sign"
-        },
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.86,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.88,
-          "desc": "Pedestrian crossing warning sign"
-        },
-        {
-          "type": "WATERLOGGING",
-          "conf": 0.95,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        }
-      ]
-    },
-    {
-      "frame": 72,
-      "time_sec": 3.0,
-      "hazards": [
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.91,
-          "desc": "Intersection signal & lane sign"
-        },
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.89,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.9,
-          "desc": "Pedestrian crossing warning sign"
-        },
-        {
-          "type": "WATERLOGGING",
-          "conf": 0.95,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.91,
-          "desc": "Pedestrian near flooded curb"
-        }
-      ]
-    },
-    {
-      "frame": 84,
-      "time_sec": 3.5,
-      "hazards": [
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.9,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "TRAFFIC_SIGN",
-          "conf": 0.91,
-          "desc": "Pedestrian crossing warning sign"
-        },
-        {
-          "type": "WATERLOGGING",
-          "conf": 0.93,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.93,
-          "desc": "Pedestrian near flooded curb"
-        }
-      ]
-    },
-    {
-      "frame": 96,
-      "time_sec": 4.0,
-      "hazards": [
-        {
-          "type": "ZEBRA_CROSSING",
-          "conf": 0.88,
-          "desc": "Crosswalk markings (72% paint wear)"
-        },
-        {
-          "type": "WATERLOGGING",
-          "conf": 0.92,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.95,
-          "desc": "Pedestrian near flooded curb"
+          "type": "POTHOLE",
+          "conf": 0.56,
+          "bbox": [
+            183,
+            328,
+            349,
+            390
+          ]
         }
       ]
     },
@@ -257,13 +109,23 @@
       "hazards": [
         {
           "type": "WATERLOGGING",
-          "conf": 0.95,
-          "desc": "Extensive standing flood (depth > 12 cm)"
+          "conf": 0.35,
+          "bbox": [
+            321,
+            250,
+            835,
+            354
+          ]
         },
         {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.93,
-          "desc": "Pedestrian near flooded curb"
+          "type": "WATERLOGGING",
+          "conf": 0.43,
+          "bbox": [
+            35,
+            260,
+            629,
+            356
+          ]
         }
       ]
     },
@@ -273,39 +135,13 @@
       "hazards": [
         {
           "type": "WATERLOGGING",
-          "conf": 0.96,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.91,
-          "desc": "Pedestrian near flooded curb"
-        }
-      ]
-    },
-    {
-      "frame": 132,
-      "time_sec": 5.5,
-      "hazards": [
-        {
-          "type": "WATERLOGGING",
-          "conf": 0.93,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.92,
-          "desc": "Pedestrian near flooded curb"
-        },
-        {
-          "type": "POTHOLE",
-          "conf": 0.92,
-          "desc": "Submerged pothole hazard"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.84,
-          "desc": "Broken road base & edge crumbling"
+          "conf": 0.35,
+          "bbox": [
+            3,
+            255,
+            844,
+            357
+          ]
         }
       ]
     },
@@ -315,23 +151,13 @@
       "hazards": [
         {
           "type": "WATERLOGGING",
-          "conf": 0.92,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.95,
-          "desc": "Pedestrian near flooded curb"
-        },
-        {
-          "type": "POTHOLE",
-          "conf": 0.91,
-          "desc": "Submerged pothole hazard"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.86,
-          "desc": "Broken road base & edge crumbling"
+          "conf": 0.36,
+          "bbox": [
+            197,
+            258,
+            549,
+            352
+          ]
         }
       ]
     },
@@ -340,29 +166,24 @@
       "time_sec": 6.5,
       "hazards": [
         {
-          "type": "WATERLOGGING",
-          "conf": 0.94,
-          "desc": "Extensive standing flood (depth > 12 cm)"
-        },
-        {
-          "type": "PEDESTRIAN_RISK",
-          "conf": 0.94,
-          "desc": "Pedestrian near flooded curb"
+          "type": "POTHOLE",
+          "conf": 0.79,
+          "bbox": [
+            111,
+            295,
+            354,
+            379
+          ]
         },
         {
           "type": "POTHOLE",
-          "conf": 0.88,
-          "desc": "Submerged pothole hazard"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.88,
-          "desc": "Broken road base & edge crumbling"
-        },
-        {
-          "type": "POTHOLE",
-          "conf": 0.87,
-          "desc": "Repeated impact depression"
+          "conf": 0.42,
+          "bbox": [
+            233,
+            268,
+            321,
+            308
+          ]
         }
       ]
     },
@@ -372,18 +193,177 @@
       "hazards": [
         {
           "type": "POTHOLE",
-          "conf": 0.89,
-          "desc": "Submerged pothole hazard"
-        },
-        {
-          "type": "ROAD_DAMAGE",
-          "conf": 0.87,
-          "desc": "Broken road base & edge crumbling"
+          "conf": 0.55,
+          "bbox": [
+            16,
+            328,
+            403,
+            440
+          ]
         },
         {
           "type": "POTHOLE",
-          "conf": 0.88,
-          "desc": "Repeated impact depression"
+          "conf": 0.69,
+          "bbox": [
+            128,
+            299,
+            266,
+            343
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 192,
+      "time_sec": 8.0,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.76,
+          "bbox": [
+            140,
+            293,
+            341,
+            356
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.47,
+          "bbox": [
+            359,
+            272,
+            419,
+            298
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 204,
+      "time_sec": 8.5,
+      "hazards": [
+        {
+          "type": "POTHOLE",
+          "conf": 0.82,
+          "bbox": [
+            330,
+            318,
+            425,
+            358
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.54,
+          "bbox": [
+            535,
+            321,
+            618,
+            353
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.39,
+          "bbox": [
+            290,
+            307,
+            426,
+            354
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 216,
+      "time_sec": 9.0,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.47,
+          "bbox": [
+            54,
+            243,
+            657,
+            353
+          ]
+        },
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.6,
+          "bbox": [
+            56,
+            244,
+            602,
+            354
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.46,
+          "bbox": [
+            534,
+            319,
+            604,
+            348
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.53,
+          "bbox": [
+            294,
+            271,
+            423,
+            337
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 228,
+      "time_sec": 9.5,
+      "hazards": [
+        {
+          "type": "WATERLOGGING",
+          "conf": 0.45,
+          "bbox": [
+            17,
+            242,
+            808,
+            344
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.44,
+          "bbox": [
+            237,
+            303,
+            349,
+            348
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.76,
+          "bbox": [
+            501,
+            318,
+            600,
+            354
+          ]
+        },
+        {
+          "type": "POTHOLE",
+          "conf": 0.43,
+          "bbox": [
+            354,
+            328,
+            415,
+            361
+          ]
         }
       ]
     }

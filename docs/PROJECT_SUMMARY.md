@@ -156,6 +156,16 @@ export interface Bus {
 ```
 
 ### 6.2 Road Anomaly Detection Event Model (`DetectionEvent`)
+
+> **Event types versus trained model classes.** The eight `event_type` values
+> below are what the backend ingests and the dashboard renders, and the fleet
+> simulator produces all of them. The onboard vision model is narrower: the
+> weights in `edge/inference/models/multilabel_best.pt` are trained on three
+> classes — `pothole`, `waterlogging` and `cracks` — which map to `POTHOLE`,
+> `WATERLOGGING` and `ROAD_DAMAGE`. The remaining five types are carried by the
+> platform and are the target of a later training run; they are not produced by
+> the current model.
+
 ```typescript
 export interface DetectionEvent {
   id: string;
