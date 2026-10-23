@@ -15,16 +15,40 @@ def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: fl
     c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
     return R * c
 
+METERS_PER_DEGREE_LAT = 111320.0
+
+# The demo feed alone runs to its 4000-event cap, and a deployment accumulates
+# more, so the scan is bounded to the most recent detections. Older events have
+# normally been resolved and turned into work orders already.
+MAX_EVENTS_CONSIDERED = 4000
+
+
 def get_spatial_defect_clusters(db: Session, max_distance_meters: float = 25.0) -> List[Dict[str, Any]]:
     """
     Groups individual defect detections across buses into verified Municipal Defect Clusters.
     Tries PostGIS ST_ClusterDBSCAN if PostGIS is enabled; falls back to spatial clustering.
     """
-    events = db.query(Event).all()
+    events = (
+        db.query(Event)
+        .order_by(Event.timestamp.desc())
+        .limit(MAX_EVENTS_CONSIDERED)
+        .all()
+    )
     if not events:
         return []
 
-    # Simple spatial clustering by distance
+    # Comparing every event with every other is quadratic, which at the event
+    # cap means millions of haversine calls and a cluster view that hangs for
+    # tens of seconds. Events are bucketed by type and by latitude band, each
+    # band one cluster radius tall: two points within max_distance_meters differ
+    # by at most that distance in latitude, so a band plus its two neighbours is
+    # guaranteed to hold every candidate. Latitude is used because a degree of
+    # latitude is a constant distance, unlike a degree of longitude.
+    band_height = max_distance_meters / METERS_PER_DEGREE_LAT
+    bands: Dict[Any, List[Event]] = {}
+    for ev in events:
+        bands.setdefault((ev.event_type, math.floor(ev.latitude / band_height)), []).append(ev)
+
     clusters = []
     visited = set()
 
@@ -35,13 +59,15 @@ def get_spatial_defect_clusters(db: Session, max_distance_meters: float = 25.0) 
         cluster_members = [ev]
         visited.add(ev.id)
 
-        for j, other in enumerate(events):
-            if other.id in visited:
-                continue
-            dist = calculate_haversine_distance(ev.latitude, ev.longitude, other.latitude, other.longitude)
-            if dist <= max_distance_meters and ev.event_type == other.event_type:
-                cluster_members.append(other)
-                visited.add(other.id)
+        band = math.floor(ev.latitude / band_height)
+        for offset in (-1, 0, 1):
+            for other in bands.get((ev.event_type, band + offset), ()):
+                if other.id in visited:
+                    continue
+                dist = calculate_haversine_distance(ev.latitude, ev.longitude, other.latitude, other.longitude)
+                if dist <= max_distance_meters:
+                    cluster_members.append(other)
+                    visited.add(other.id)
 
         avg_lat = sum(m.latitude for m in cluster_members) / len(cluster_members)
         avg_lon = sum(m.longitude for m in cluster_members) / len(cluster_members)

@@ -10,9 +10,18 @@ db_url = settings.DATABASE_URL
 connect_args = {}
 
 if db_url.startswith("postgresql"):
-    if importlib.util.find_spec("psycopg2") is None:
-        logger.warning("psycopg2 not found locally. Falling back to SQLite database.")
+    has_psycopg2 = importlib.util.find_spec("psycopg2") is not None
+    has_psycopg3 = importlib.util.find_spec("psycopg") is not None
+    if not has_psycopg2 and not has_psycopg3:
+        logger.warning("No PostgreSQL driver found locally. Falling back to SQLite database.")
         db_url = "sqlite:///./urban_intelligence.db"
+    elif db_url.startswith("postgresql://"):
+        # SQLAlchemy 2.1 resolves a bare "postgresql://" URL to the psycopg 3
+        # driver, while requirements.txt pins psycopg2-binary. Naming the driver
+        # explicitly keeps the same DATABASE_URL working on SQLAlchemy 2.0 and
+        # 2.1 alike, and on a deployment that ships psycopg 3 instead.
+        driver = "psycopg2" if has_psycopg2 else "psycopg"
+        db_url = db_url.replace("postgresql://", f"postgresql+{driver}://", 1)
 
 if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}

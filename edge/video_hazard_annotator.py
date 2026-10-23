@@ -14,6 +14,8 @@ import sys
 import time
 import argparse
 import logging
+import shutil
+import subprocess
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict, Any, Optional
 
@@ -532,11 +534,13 @@ class LiveVideoAnnotator:
 
         # Try H.264 (avc1) first for native in-browser HTML5 video playback in Chrome/Edge/Safari
         writer = None
+        chosen_codec = None
         for codec_tag in ["avc1", "H264", "mp4v"]:
             fourcc = cv2.VideoWriter_fourcc(*codec_tag)
             test_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
             if test_writer.isOpened():
                 writer = test_writer
+                chosen_codec = codec_tag
                 logger.info(f"[Annotator] Initialized VideoWriter using codec: {codec_tag}")
                 break
             else:
@@ -601,6 +605,14 @@ class LiveVideoAnnotator:
         cap.release()
         writer.release()
 
+        # The OpenCV wheels on Linux ship without an H.264 encoder, so the loop
+        # above lands on mp4v. That is MPEG-4 Part 2, which Chrome, Edge and
+        # Safari all refuse to play, and the dashboard would show a black box
+        # where the AI dashcam feed should be. Re-encoding with ffmpeg keeps the
+        # output browser-playable wherever the annotator happens to run.
+        if chosen_codec not in ("avc1", "H264"):
+            _transcode_to_h264(output_path)
+
         elapsed_total = time.time() - start_time
         out_size_mb = os.path.getsize(output_path) / (1024 * 1024)
 
@@ -621,6 +633,45 @@ class LiveVideoAnnotator:
             "class_stats": class_stats,
             "total_detections": total_detections_count,
         }
+
+
+def _transcode_to_h264(path: str) -> None:
+    """
+    Re-encodes an annotated clip in place to H.264 so browsers can play it.
+
+    Leaves the original untouched if ffmpeg is missing or the encode fails: a
+    clip in the wrong codec is still better than no clip at all, and the warning
+    says what to do about it.
+    """
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        logger.warning(
+            "[Annotator] Output is not H.264 and ffmpeg was not found, so the clip "
+            "will not play in a browser. Install ffmpeg, or convert manually with: "
+            "ffmpeg -i %s -c:v libx264 -pix_fmt yuv420p out.mp4",
+            path,
+        )
+        return
+
+    temp_path = f"{path}.h264.mp4"
+    command = [
+        ffmpeg, "-y", "-v", "error",
+        "-i", path,
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",      # required by Safari and some Android players
+        "-preset", "veryfast",
+        "-crf", "20",
+        "-movflags", "+faststart",  # lets the dashboard start playing while loading
+        temp_path,
+    ]
+    try:
+        subprocess.run(command, check=True, capture_output=True, timeout=600)
+        os.replace(temp_path, path)
+        logger.info("[Annotator] Re-encoded output to H.264 for browser playback.")
+    except Exception as exc:
+        logger.warning("[Annotator] H.264 re-encode failed, keeping original: %s", exc)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 def main():

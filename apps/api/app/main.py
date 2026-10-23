@@ -8,7 +8,9 @@ from app.api.endpoints.health import router as health_router
 from app.api.router import api_router
 from app.services import demo_feed
 from app.services.evidence_store import EVIDENCE_DIR, EVIDENCE_ROUTE, ensure_dir
+from app.services.fleet_broadcast import run_fleet_broadcaster
 
+import asyncio
 from contextlib import asynccontextmanager
 import logging
 
@@ -27,9 +29,17 @@ async def lifespan(app: FastAPI):
 
     # Keeps a deployed demo live when no edge device or simulator is feeding it.
     demo_feed.start()
+
+    # Gives /api/ws/fleet something to send. Idle until a client connects.
+    broadcaster = asyncio.create_task(run_fleet_broadcaster())
     try:
         yield
     finally:
+        broadcaster.cancel()
+        try:
+            await broadcaster
+        except asyncio.CancelledError:
+            pass
         demo_feed.stop()
 
 app = FastAPI(
