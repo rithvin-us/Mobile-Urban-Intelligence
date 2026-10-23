@@ -1,288 +1,224 @@
-# SIH26124 - AI-Powered Onboard + Centralized Urban Sensing Platform
+<div align="center">
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.2%2B-000000?style=flat&logo=next.js)](https://nextjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20PostGIS%203.4-336791?style=flat&logo=postgresql)](https://postgis.net/)
-[![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?style=flat&logo=redis)](https://redis.io/)
-[![NVIDIA Jetson](https://img.shields.io/badge/NVIDIA-Jetson%20Orin-76B900?style=flat&logo=nvidia)](https://developer.nvidia.com/embedded/jetson-orin)
+# Mobile Urban Intelligence
 
-An enterprise-grade, edge-to-cloud AI urban sensing platform that leverages public transport bus fleets for real-time road condition monitoring, traffic anomaly detection, and municipal infrastructure analytics.
+**Turning public transport fleets into a continuous road condition sensor network.**
 
----
+[![CI](https://github.com/rithvin-us/Mobile-Urban-Intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/rithvin-us/Mobile-Urban-Intelligence/actions/workflows/ci.yml)
+[![CD](https://github.com/rithvin-us/Mobile-Urban-Intelligence/actions/workflows/cd.yml/badge.svg)](https://github.com/rithvin-us/Mobile-Urban-Intelligence/actions/workflows/cd.yml)
+[![Release](https://img.shields.io/github/v/release/rithvin-us/Mobile-Urban-Intelligence?sort=semver)](https://github.com/rithvin-us/Mobile-Urban-Intelligence/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🏗️ Architecture Overview
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![PostGIS](https://img.shields.io/badge/PostgreSQL%2016-PostGIS%203.4-336791?logo=postgresql&logoColor=white)](https://postgis.net/)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io/)
+[![Jetson](https://img.shields.io/badge/NVIDIA-Jetson%20Orin-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/embedded/jetson-orin)
+[![MATLAB](https://img.shields.io/badge/MATLAB-R2026b%20%2B%20Simulink-0076A8?logo=mathworks&logoColor=white)](https://www.mathworks.com/)
 
-The platform uses a decoupled edge-central architecture. Central FastAPI backends receive real-time telemetry and object detection events over standard REST/MQTT endpoints, making edge processing units (NVIDIA Jetson) fully interchangeable with the telemetry simulation suite.
-
-```
-+-----------------------------------------------------------------------------------+
-|                                  DATA PRODUCERS                                   |
-|  +------------------------------+            +---------------------------------+  |
-|  | Simulated Bus Fleet          |     OR     | NVIDIA Jetson Edge AI Platform  |  |
-|  | (10 buses, routes, GPS streams) |            | (YOLO, DeepSORT, NMEA GPS)      |  |
-|  +------------------------------+            +---------------------------------+  |
-+----------------------------------\----------/-------------------------------------+
-                                    \        /
-                           HTTP POST \      / HTTP POST
-                            Telemetry \    /  Events
-                                       v  v
-+-----------------------------------------------------------------------------------+
-|                                CENTRALIZED BACKEND                                |
-|  +-----------------------------------------------------------------------------+  |
-|  | FastAPI REST Engine (Port 8000)                                             |  |
-|  |  ├── GET  /health                                                           |  |
-|  |  ├── GET  /api/buses & /api/buses/{id}                                      |  |
-|  |  ├── POST /api/buses/telemetry                                              |  |
-|  |  ├── GET  /api/events & /api/events/{id}                                    |  |
-|  |  └── POST /api/events                                                       |  |
-|  +-----------------------------------------------------------------------------+  |
-|                                     |                                             |
-|               PostgreSQL + PostGIS (Port 5432) | Redis Cache (Port 6379)           |
-+-------------------------------------|---------------------------------------------+
-                                      v
-+-----------------------------------------------------------------------------------+
-|                                DASHBOARD FRONTEND                                 |
-|  +-----------------------------------------------------------------------------+  |
-|  | Next.js 14 + React 18 + Tailwind CSS + Google Maps GIS Engine (Port 3000)    |  |
-|  |  ├── Live Interactive Map (Bus markers, heading, polylines)                 |  |
-|  |  ├── Real-time Road Anomaly Stream & Severity Badges                        |  |
-|  |  └── Municipal Analytics & Fleet Health Breakdown                           |  |
-|  +-----------------------------------------------------------------------------+  |
-+-----------------------------------------------------------------------------------+
-```
+</div>
 
 ---
 
-## 🔌 External Source Requirements
+## The problem
 
-To deploy and operate the system in a production or live hardware environment, the following hardware, software, and driver components are required:
+Municipal road inspection is manual, scheduled, and slow. A pothole is typically
+found by a complaint, weeks after it formed, after it has already damaged
+vehicles. Meanwhile city buses drive every arterial road several times a day and
+sense nothing.
 
-### 1. Edge Hardware & Onboard Sensors (Bus Fleet)
-* **Processing Unit**: NVIDIA Jetson Orin Nano (8GB) / Orin NX / Xavier NX (ARM64 architecture) running NVIDIA JetPack SDK.
-* **Camera Sensors**: 1080p / 4K USB or CSI Optical Cameras (minimum 30 FPS, wide dynamic range) mounted behind bus windshields for front-facing road views.
-* **GPS Receiver**: NMEA-0183 compliant GNSS/GPS Receiver module (e.g., u-blox NEO-M8N or USB GNSS Dongle) connected via serial (`/dev/ttyUSB0` or `/dev/ttyTHS1`).
-* **Telematics Gateway**: 4G LTE / 5G Cellular Modem (e.g., Quectel EC25 or SIM7600) with active M2M SIM card for real-time cloud data transmission.
+Streaming their dashcam video to the cloud is not the answer either: raw 1080p
+from a fleet over LTE is prohibitively expensive, and the decision needs to
+happen in milliseconds. So the inference runs onboard, and only metadata
+crosses the network.
 
-### 2. Edge Software & Framework Dependencies
-* **Operating System**: NVIDIA JetPack 5.1+ / 6.x (Ubuntu 20.04/22.04 LTS based L4T).
-* **AI & Computer Vision**:
-  * CUDA 11.8/12.2 & cuDNN 8.x
-  * TensorRT 8.6+ (for compiling `.onnx` models into high-throughput FP16/INT8 `.engine` models)
-  * OpenCV (compiled with CUDA acceleration)
-  * PyTorch / ONNX Runtime
-  * ByteTrack / DeepSORT tracking modules
-* **Python Edge Libraries**: `pynmea2`, `pyserial`, `httpx` / `requests`.
+## What this does
 
-### 3. Cloud Central Backend Infrastructure
-* **Runtime**: Python 3.10+
-* **Framework**: FastAPI 0.110+, Uvicorn / Gunicorn WSGI.
-* **Spatial Database**: PostgreSQL 16 with **PostGIS 3.4** extension enabled for indexing geographic coordinates (`GEOMETRY(Point, 4326)`), spatial bounding box queries, and route proximity matching.
-* **In-Memory Store**: Redis 7.x (for sub-second fleet coordinate caching, rate limiting, and event Pub/Sub).
-* **Python Dependencies**: `sqlalchemy>=2.0.28`, `geoalchemy2>=0.14.7`, `psycopg2-binary>=2.9.9`, `pydantic-settings>=2.2.1`, `httpx>=0.27.0`.
+A bus becomes a sensor node. An NVIDIA Jetson behind the windshield runs YOLOv8
+over the camera feed, classifies road hazards, geotags them against RTK GNSS,
+and posts only the resulting event payloads to a PostGIS backend. A Next.js
+operations dashboard shows the fleet live and merges repeated sightings of the
+same defect into verified municipal work orders.
 
-### 4. Dashboard Frontend Stack
-* **Runtime**: Node.js v18.x or v20.x LTS, `pnpm` (v8+).
-* **Framework**: Next.js 14 (App Router), React 18, TypeScript 5.4.
-* **UI Libraries**: Tailwind CSS, Lucide React, shadcn/ui components.
-* **Mapping & Charts**: `@vis.gl/react-google-maps` (v1.5+), Recharts (v2.12+).
+| Capability | Status |
+| :--- | :--- |
+| Onboard multi-class hazard detection (YOLOv8) | Working, trained weights included |
+| Potholes, cracks, waterlogging, signage, zebra crossings, pedestrian risk | 6 classes |
+| Spatio-temporal defect clustering into work orders | Working |
+| Live operator dashboard with GPU-accelerated map | Working |
+| 3D vehicle digital twin with sensor breakdown | Working |
+| Real-time WebSocket fleet stream | Working (dashboard currently polls) |
+| Physics validation in MATLAB and Simulink | Working |
 
 ---
 
-## 🚀 Deployment Strategies
+## Architecture
 
-### Strategy A: Edge Fleet Deployment (NVIDIA Jetson Onboard Units)
+```
+┌──────────────────────── ONBOARD EDGE UNIT (per bus) ─────────────────────────┐
+│                                                                              │
+│   Sony STARVIS camera ──▶ Jetson Orin Nano ──▶ ByteTrack ──▶ Event engine    │
+│   1080p 60 FPS            TensorRT YOLOv8      tracking      severity grade  │
+│                                   ▲                              │           │
+│   u-blox ZED-F9P GNSS ────────────┘                              │           │
+│   RTK, 20 Hz                                                     ▼           │
+│                                                     SQLite store-and-forward │
+└──────────────────────────────────────────────────────────┬───────────────────┘
+                                                           │ HTTPS over 4G/5G
+                                                           │ metadata only
+                                                           ▼
+┌─────────────────────────── CENTRAL BACKEND ──────────────────────────────────┐
+│   FastAPI ingestion  ·  PostgreSQL 16 + PostGIS 3.4  ·  Redis 7              │
+│   REST + WebSocket fan-out  ·  spatial defect clustering  ·  health telemetry │
+└──────────────────────────────────────────────────────────┬───────────────────┘
+                                                           │
+                                                           ▼
+┌────────────────────────── OPERATOR DASHBOARD ────────────────────────────────┐
+│   Next.js 14 · deck.gl GPU map · Three.js digital twin · evidence viewer      │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-#### Option 1: Containerized Fleet Deployment (Recommended for Scale)
-* Package edge application into a lightweight ARM64 Docker container based on `nvcr.io/nvidia/l4t-ml`.
-* Deploy and manage containers across bus fleets using **balenaCloud**, **Azure IoT Edge**, or **AWS IoT Greengrass**.
-* Benefits: Provides centralized fleet monitoring, remote health checks, automated container restarts, and over-the-air (OTA) updates.
-
-#### Option 2: Native Systemd Service (Bare-Metal Setup)
-* Install Python dependencies and TensorRT runtimes directly on JetPack OS.
-* Register the edge pipeline as a system daemon (`/etc/systemd/system/urban-edge.service`):
-  ```ini
-  [Unit]
-  Description=Urban Intelligence Edge Processing Engine
-  After=network.target
-
-  [Service]
-  ExecStart=/usr/bin/python3 /opt/urban-edge/main.py
-  Restart=always
-  User=root
-
-  [Install]
-  WantedBy=multi-user.target
-  ```
-* **Offline Resilience**: Implement local SQLite/RocksDB buffer on the Jetson SD card/NVMe drive to store telemetry and detected events when cellular signal drops, flushing to central API automatically upon reconnection.
+Edge units and the bundled fleet simulator are interchangeable: both speak the
+same REST contract, so the whole platform can be demonstrated without hardware.
 
 ---
 
-### Strategy B: Central Backend & Database Infrastructure
+## Quick start
 
-#### Option 1: Self-Hosted Docker Stack (Single VM Deployment)
-* Suitable for pilot deployments on AWS EC2 (t3.xlarge / c6i.xlarge), GCP Compute Engine, or Hetzner VPS.
-* Execute `docker-compose up -d` to launch PostgreSQL/PostGIS, Redis, and FastAPI services in isolated containers.
-* Place an Nginx or Caddy reverse proxy in front for TLS termination (HTTPS / Let's Encrypt).
+Needs Docker, Python 3.10+, and Node 20 with pnpm 8+.
 
-#### Option 2: Enterprise Cloud Managed Stack (High Availability & Scale)
-* **Backend API**: Deploy FastAPI app to **AWS ECS (Fargate)** or **GCP Cloud Run** with horizontal auto-scaling based on HTTP request volume.
-* **Spatial Database**: Deploy to **AWS RDS PostgreSQL** (or GCP Cloud SQL) with `postgis` extension enabled, multi-AZ failover, and automated spatial snapshots.
-* **Cache**: Deploy to **AWS ElastiCache for Redis** for high-throughput in-memory state management.
+```sh
+# 1. Spatial database and cache
+docker compose up -d postgres redis
 
----
+# 2. Backend
+python -m venv .venv && . .venv/bin/activate
+pip install -r apps/api/requirements.txt
+cp .env.example .env                           # set DEMO_MODE=1 for a self-driving demo
+cd apps/api && uvicorn app.main:app --port 8000
 
-### Strategy C: Frontend Dashboard Deployment
-
-#### Option 1: Managed Serverless Platform (Vercel / Netlify)
-* Connect repository to **Vercel**.
-* Configure root build settings for `apps/web` (Framework: Next.js).
-* Set environment variable `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in project settings.
-
-#### Option 2: Dockerized Standalone Container
-* Enable Next.js standalone build in `apps/web/next.config.js` (`output: 'standalone'`).
-* Containerize and deploy to any container platform or Kubernetes cluster behind Nginx.
-
----
-
-### Strategy D: CI/CD & Model OTA Pipeline
-* **Continuous Integration**: GitHub Actions workflow executing code formatting, `pytest` API suites, TypeScript type checks (`tsc --noEmit`), and Docker build tests.
-* **Over-The-Air (OTA) Model Deployment**: Host compiled TensorRT model weights (`.engine` files) in secure cloud storage (AWS S3 / Cloudflare R2). Edge units check for model updates on startup via MQTT / HTTP endpoints and download updated weights without physical vehicle maintenance.
-
----
-
-## 🔑 API Keys & Required Credentials
-
-| Environment Variable | Service Provider | Description & Scope | Required Level |
-|---|---|---|---|
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Cloud Platform | Google Maps JavaScript API key used by Next.js frontend (`apps/web/components/map/google_map.tsx`) to render maps, bus markers, and route vectors. Requires *Maps JavaScript API*, *Directions API*, and *Geocoding API* enabled in GCP Console. | **Required** |
-| `DATABASE_URL` | PostgreSQL + PostGIS | Database connection URI (e.g., `postgresql://postgres:postgres@localhost:5432/urban_intelligence`). | **Required** |
-| `REDIS_URL` | Redis | Redis connection string (e.g., `redis://localhost:6379/0`). | **Required** |
-| `OPENWEATHERMAP_API_KEY` | OpenWeather API | *(Recommended Extension)* Used to fetch real-time precipitation and weather conditions to correlate with road defect events (e.g., waterlogging, potholes). | *Recommended* |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | Twilio SMS API | *(Recommended Extension)* Used by central backend to trigger urgent SMS alerts to city engineers when severe hazards are detected. | *Recommended* |
-| `TELEGRAM_BOT_TOKEN` / `SLACK_WEBHOOK_URL` | Telegram / Slack | *(Recommended Extension)* Webhook credentials for streaming critical defect alerts directly into municipal dispatch channels. | *Recommended* |
-| `SENTRY_DSN` | Sentry.io | *(Enterprise Extension)* Exception monitoring and latency tracking for edge nodes and backend endpoints. | *Optional* |
-| `AWS_IOT_ENDPOINT` & Certs | AWS IoT Core | *(Enterprise Extension)* X.509 certificates and MQTT endpoint for encrypted edge-to-cloud telematic transport. | *Optional* |
-
----
-
-## 📂 Directory Structure
-
-```
-urban-intelligence/
-├── apps/
-│   ├── web/                     # Next.js 14 Frontend Dashboard (Port 3000)
-│   │   ├── app/                 # Next.js App Router pages & dashboard
-│   │   ├── components/          # Google Maps GIS, Stat cards, Analytics charts
-│   │   └── lib/                 # REST API client & helpers
-│   └── api/                     # FastAPI Python Backend Service (Port 8000)
-│       ├── app/                 # Routers, SQLAlchemy models, schemas, services
-│       ├── tests/               # Pytest test suite
-│       ├── Dockerfile           # Backend container build specification
-│       └── requirements.txt     # Python backend dependencies
-├── edge/                        # Jetson AI module architecture & specs
-│   ├── inference/               # TensorRT / YOLO object detection specifications
-│   ├── tracking/                # DeepSORT / ByteTrack tracking specifications
-│   ├── gps/                     # NMEA GPS serial parsing specifications
-│   └── event_engine/            # Defect thresholding & HTTP payload serializer
-├── simulator/                   # Bus Fleet & Event Telemetry Simulator
-│   ├── buses/                   # Bus route motion simulator
-│   ├── events/                  # Random anomaly event generator
-│   └── main.py                  # Telemetry runner script
-├── packages/                    # Monorepo shared packages (types, configs)
-├── infrastructure/              # Database scripts & Docker configurations
-│   └── postgres/init.sql        # PostGIS extension initialization
-├── .env.example                 # Environment configuration template
-├── docker-compose.yml           # Postgres/PostGIS, Redis, API container stack
-└── README.md                    # Project documentation
-```
-
----
-
-## ⚡ Local Quickstart & Development Setup
-
-### Prerequisites
-* **Node.js**: v18.x or v20.x LTS & `pnpm`
-* **Python**: 3.10+
-* **Docker Engine** & **Docker Compose**
-
-### Step 1: Environment Setup
-Copy `.env.example` to generate root `.env` and frontend `.env.local`:
-```bash
-cp .env.example .env
-cp .env.example apps/web/.env.local
-```
-Add your Google Maps API Key to `apps/web/.env.local`:
-```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_actual_google_maps_api_key
-```
-
-### Step 2: Start PostGIS & Redis (Docker)
-```bash
-docker-compose up -d postgres redis
-```
-
-### Step 3: Start Central Backend (FastAPI)
-```bash
-cd apps/api
-python -m venv venv
-
-# Windows PowerShell:
-.\venv\Scripts\activate
-
-# Linux / macOS:
-source venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-Interactive API documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
-
-### Step 4: Run Telemetry Simulator
-In a separate terminal window:
-```bash
-python simulator/main.py
-```
-This spawns 10 simulated buses moving along predefined city routes, continuously sending GPS telemetry and detecting simulated road anomalies (potholes, waterlogging, traffic incidents).
-
-### Step 5: Start Frontend Dashboard (Next.js)
-```bash
-# Install monorepo dependencies
+# 3. Dashboard
 pnpm install
-
-# Start Next.js development server
+cp apps/web/.env.example apps/web/.env.local   # add your Google Maps API key
 pnpm --filter web dev
 ```
-Open your browser and navigate to [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
+
+Open <http://localhost:3000/dashboard>.
+
+> The dashboard needs a real `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. Without one the
+> map panel renders an error and the rest of the interface still works.
+
+With `DEMO_MODE=1` the API drives the 24-bus fleet itself. To feed it from the
+standalone simulator instead, leave `DEMO_MODE=0` and run `python simulator/main.py`.
 
 ---
 
-## 🧪 Testing & DevOps CI/CD Workflows
+## API
 
-### 1. GitHub Actions Workflows (`.github/workflows/`)
-- **Continuous Integration (`.github/workflows/ci.yml`)**: Automated CI pipeline triggered on `push` and `pull_request` to `main`/`master` branches:
-  - **Backend Job**: Spins up PostgreSQL + PostGIS (`postgis/postgis:16-3.4-alpine`) & Redis service containers, installs requirements, executes `pytest` suite, and checks test coverage.
-  - **Frontend Job**: Executes TypeScript type-checking (`pnpm --filter web type-check`) and Next.js production build tests (`pnpm --filter web build`).
-  - **Simulator Verification**: Runs a 10-second end-to-end telemetry simulator test step against the FastAPI engine.
-  - **Docker Build Check**: Validates `apps/api/Dockerfile` container image build.
-- **Continuous Deployment (`.github/workflows/cd.yml`)**: Automated Docker container image build and release to GitHub Container Registry (`ghcr.io`) upon tagging a release (`v*.*.*`).
+| Method | Path | Purpose |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Liveness, also answers `HEAD` |
+| `GET` | `/health/system` | Pipeline status: database, ingest freshness, counts |
+| `GET` | `/api/buses` | Fleet snapshot |
+| `GET` | `/api/buses/{bus_id}` | One vehicle |
+| `POST` | `/api/buses/telemetry` | Telemetry ingest, one vehicle |
+| `POST` | `/api/buses/telemetry/batch` | Telemetry ingest, batched |
+| `POST` | `/api/buses/reset-fleet` | Reseed the regional fleet |
+| `GET` | `/api/events` | Hazard events, filter by type and status |
+| `GET` | `/api/events/{event_id}` | One event |
+| `POST` | `/api/events` | Hazard event ingest |
+| `PATCH` | `/api/events/{event_id}/status` | Acknowledge or resolve |
+| `GET` | `/api/events/clusters` | Defects merged into verified work orders |
+| `WS` | `/api/ws/fleet` | Live `FLEET_UPDATE` and `EVENT_ALERT` stream |
 
-### 2. Local Git Pre-Commit & Pre-Push Hooks (`.githooks/`)
-Enable local developer git hooks to catch errors before committing or pushing code:
-```bash
-python scripts/setup-hooks.py
+Interactive documentation is at `/docs` once the backend is running.
+
+---
+
+## Validation
+
+Detection accuracy is not asserted, it is measured. `matlab sims/` contains a
+physics model that generates a road, drives a bus over it, and scores the
+detector against ground truth it controls.
+
+`pothole_imu_sim.m` synthesises an ISO 8608 road profile, injects potholes,
+cracks and speed breakers at known positions, runs a 2-DOF bus quarter-car model
+to produce the vertical acceleration an onboard IMU would record, grades the
+corridor with the ASTM E1926 golden car, then detects and scores:
+
 ```
-- **Pre-Commit Hook**: Automatically runs Next.js TypeScript type check before allowing git commits.
-- **Pre-Push Hook**: Automatically runs the FastAPI Pytest test suite before allowing git pushes.
-
-### 3. Automated Test Execution
-Run the Python backend pytest test suite locally:
-```bash
-cd apps/api
-python -m pytest
+IRI = 9.23 m/km (severely distressed)
+IMU-detectable classes: precision 0.800 | recall 1.000 | F1 0.889
+  pothole           15 present, 15 found, recall 1.00
+  speed breaker      5 present,  5 found, recall 1.00
+  transverse crack  20 present,  4 found, recall 0.20
 ```
 
-Run frontend type checking locally:
-```bash
-pnpm --filter web type-check
+That last row is the useful one. An accelerometer cannot reliably feel a 2 cm
+crack, because the tyre contact patch bridges it. **This is the quantified
+reason the platform leads with a camera rather than a cheap inertial sensor**,
+and it is reported rather than averaged into a flattering headline.
+
+Two Simulink models accompany it. `quarter_car_model.slx` models ride dynamics
+and independently reproduces the script's result — 0.137 g RMS chassis
+acceleration against the script's 0.134 g, from a separate implementation.
+`edge_pipeline_latency.slx` models the sensing chain stage by stage and puts the
+glass-to-dashboard budget at **130 ms**, of which the LTE uplink alone is 85 ms.
+That is the quantitative case for inferring onboard instead of streaming video.
+
+Both models are generated by `build_models.m` and verified by `run_models.m`,
+so they are reproducible rather than opaque binaries. See
+[`matlab sims/README.md`](matlab%20sims/README.md).
+
+---
+
+## Repository layout
+
+```
+apps/
+  api/                 FastAPI backend, PostGIS persistence, WebSocket fan-out
+  web/                 Next.js 14 operator dashboard
+edge/
+  inference/           YOLOv8 multi-label detector and model registry
+  event_engine/        SQLite store-and-forward buffer for offline resilience
+  data/                Sample dashcam footage and frames
+  vendor/              Platform-specific codec libraries
+simulator/             Synthetic fleet telemetry producer
+matlab sims/           MATLAB scripts and Simulink models
+packages/              Shared TypeScript config and types
+infrastructure/        Database initialisation SQL
+docs/                  Architecture, deployment, design brief, audit
+scripts/               Developer tooling
+.github/workflows/     CI, container release, versioned release
 ```
 
+---
+
+## Testing
+
+```sh
+ruff check apps/api --ignore E501      # backend lint
+cd apps/api && pytest                  # backend suite
+pnpm --filter web type-check           # dashboard types
+pnpm --filter web build                # dashboard production build
+pytest edge/test_detector.py           # edge AI against the real weights
+```
+
+CI runs the backend suite against live PostGIS and Redis service containers,
+type-checks and builds the dashboard, exercises the simulator against a running
+API, and builds the backend container image. Tagging `v*.*.*` publishes a
+GitHub Release and pushes multi-architecture images to GHCR.
+
+---
+
+## Documentation
+
+- [Project summary and technical specification](docs/PROJECT_SUMMARY.md)
+- [Deployment guide](docs/DEPLOYMENT.md)
+- [Dashboard design brief](docs/DASHBOARD_DESIGN_BRIEF.md)
+- [Audit and roadmap](docs/AUDIT_AND_ROADMAP.md)
+- [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Changelog](CHANGELOG.md)
+
+## License
+
+[MIT](LICENSE).

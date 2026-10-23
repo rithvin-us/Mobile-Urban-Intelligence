@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "SIH26124 Urban Intelligence Platform"
+    PROJECT_NAME: str = "Mobile Urban Intelligence Platform"
     API_V1_STR: str = "/api"
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",

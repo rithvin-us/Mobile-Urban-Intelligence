@@ -64,7 +64,50 @@ Outputs land in `matlab sims/output/`:
 - `summary.json` — IRI, class, detector metrics
 - `fig_profile_accel.png`, `fig_detection.png`, `fig_pr_curve.png`
 
-### 2. `postDetectionsToApi.m` — implemented
+### 2. Simulink models — implemented
+
+A `.slx` file is a binary archive, so both models are generated from
+`build_models.m` rather than edited by hand. That keeps them reviewable in a
+pull request and reproducible on any machine:
+
+```matlab
+cd('matlab sims')
+build_models     % writes both .slx files
+run_models       % simulates both and prints the headline numbers
+```
+
+**`quarter_car_model.slx`** — the ride dynamics of one corner of a loaded city
+bus, as a Simulink state-space block. Road elevation in, chassis and axle
+vertical acceleration out. It is the block-diagram counterpart of the quarter
+car inside `pothole_imu_sim.m`, using identical mass, stiffness and damping
+values, so the two should agree on the same input.
+
+The road comes from `qc_road_input.m` via the model's `PreLoadFcn`, so opening
+the model is enough to populate its input. That matters for a reason worth
+stating: an earlier version drove the model from a Pulse Generator, which puts
+a *step* discontinuity into road elevation. Because the tyre stiffness term
+feeds the input directly through to axle acceleration, that produced peaks near
+100 g — about an order of magnitude beyond anything a real road generates. Every
+feature in the input is now continuous.
+
+**`edge_pipeline_latency.slx`** — the sensing architecture as a timed signal
+chain, one subsystem per stage:
+
+| Stage | Budget | Basis |
+| :--- | ---: | :--- |
+| Camera capture | 5 ms | Sony STARVIS, 1080p 60 FPS |
+| Edge inference | 22 ms | TensorRT INT8 YOLOv8n on Jetson Orin Nano |
+| Object tracking | 4 ms | ByteTrack association |
+| Event engine | 2 ms | Severity grading and deduplication |
+| LTE uplink | 85 ms | Quectel RM500Q, HTTPS POST |
+| Cloud ingest | 12 ms | FastAPI validation and PostGIS write |
+| **Glass to dashboard** | **130 ms** | |
+
+The model turns the architecture diagram into a number. The uplink dominates
+everything the edge unit does, which is the quantitative argument for inferring
+onboard and sending metadata instead of streaming video.
+
+### 3. `postDetectionsToApi.m` — implemented
 
 Posts `output/detections.json` into the running backend with `webwrite`, so a
 MATLAB-simulated corridor survey appears on the operator dashboard alongside

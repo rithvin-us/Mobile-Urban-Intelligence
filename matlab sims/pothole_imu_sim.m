@@ -19,7 +19,7 @@ function results = pothole_imu_sim(opts)
 %     LengthM     Corridor length to survey, in metres. Default 5000.
 %     SampleHz    IMU sampling rate. Default 400.
 %     Threshold   Detector trigger, in robust standard deviations. Default 6.
-%     Seed        Random seed, so a demo is reproducible. Default 26124.
+%     Seed        Random seed, so a demo is reproducible. Default 20261024.
 %     Export      Write JSON and PNG outputs to ./output. Default true.
 %
 %   Written against base MATLAB only. The licensed installation on this machine
@@ -30,7 +30,7 @@ function results = pothole_imu_sim(opts)
 %
 %   See also POSTDETECTIONSTOAPI.
 
-% Copyright 2026 Mobile Urban Intelligence (SIH26124).
+% Copyright 2026 Mobile Urban Intelligence.
 
 arguments
     opts.RoadClass (1,1) string {mustBeMember(opts.RoadClass, ["A","B","C","D","E"])} = "C"
@@ -38,7 +38,7 @@ arguments
     opts.LengthM   (1,1) double {mustBePositive} = 5000
     opts.SampleHz  (1,1) double {mustBePositive} = 400
     opts.Threshold (1,1) double {mustBePositive} = 6
-    opts.Seed      (1,1) double = 26124
+    opts.Seed      (1,1) double = 20261024
     opts.Export    (1,1) logical = true
 end
 

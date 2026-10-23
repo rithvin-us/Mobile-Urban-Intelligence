@@ -1,0 +1,73 @@
+name: Release
+
+# Publishes a GitHub Release when a semantic version tag is pushed. The release
+# notes are generated from the commits since the previous tag, so Conventional
+# Commit messages are what make them readable.
+#
+#   git tag -a v1.0.0 -m "Release v1.0.0"
+#   git push origin v1.0.0
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Verify Tagged Commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/api/requirements.txt
+          pip install pytest ruff==0.16.8
+
+      - name: Lint Backend
+        run: ruff check apps/api --ignore E501
+
+      - name: Run Backend Test Suite
+        env:
+          DATABASE_URL: sqlite:///./test.db
+        run: cd apps/api && python -m pytest -q
+
+  publish:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [verify]
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Release with Generated Notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # A pre-release tag (v1.0.0-rc.1) is published as a pre-release so it
+          # does not become the repository's headline "Latest" release.
+          PRERELEASE_FLAG=""
+          case "$TAG" in
+            *-*) PRERELEASE_FLAG="--prerelease" ;;
+          esac
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            --verify-tag \
+            $PRERELEASE_FLAG

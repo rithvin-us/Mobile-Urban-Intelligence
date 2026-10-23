@@ -17,7 +17,7 @@ function posted = postDetectionsToApi(apiBase, busId)
 %
 %   See also POTHOLE_IMU_SIM.
 
-% Copyright 2026 Mobile Urban Intelligence (SIH26124).
+% Copyright 2026 Mobile Urban Intelligence.
 
 arguments
     apiBase (1,1) string = "http://localhost:8000"

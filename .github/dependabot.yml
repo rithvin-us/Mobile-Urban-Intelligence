@@ -1,0 +1,61 @@
+version: 2
+
+updates:
+  - package-ecosystem: "pip"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencies", "backend"]
+
+  - package-ecosystem: "pip"
+    directory: "/edge"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencies", "edge-ai"]
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencies", "frontend"]
+    groups:
+      # React, Next and the mapping stack move together; separate PRs for each
+      # only produce merge conflicts and a broken intermediate state.
+      frontend-core:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      visualisation:
+        patterns:
+          - "@deck.gl/*"
+          - "@vis.gl/*"
+          - "three"
+          - "@react-three/*"
+          - "@types/three"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(ci)"
+    labels: ["dependencies", "ci"]
+
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencies", "docker"]

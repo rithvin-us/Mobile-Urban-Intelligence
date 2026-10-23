@@ -44,3 +44,14 @@ edge_buffer_*.db
 
 # Generated MATLAB simulation artefacts (figures, JSON payloads)
 matlab sims/output/
+
+# MATLAB / Simulink build caches and autosaves. The .slx models themselves are
+# tracked; these are regenerated artefacts.
+slprj/
+*.slxc
+*.asv
+*.autosave
+*.slx.r*
+
+# Additional virtualenv layouts
+.venv*/

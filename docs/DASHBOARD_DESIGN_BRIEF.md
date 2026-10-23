@@ -1,8 +1,8 @@
-# SIH26124 Urban Intelligence Dashboard Design Brief
+# Urban Intelligence Dashboard Design Brief
 
 ## Problem Context
 
-This dashboard is being developed for **SIH26124**, a software problem statement focused on transforming **public transport buses into mobile urban sensing units**.
+This dashboard is built around a problem statement focused on transforming **public transport buses into mobile urban sensing units**.
 
 The actual system is:
 

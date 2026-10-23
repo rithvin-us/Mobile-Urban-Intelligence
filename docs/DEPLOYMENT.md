@@ -1,6 +1,6 @@
 # Deployment
 
-Live environment for the SIH26124 Urban Intelligence platform.
+Live environment for the Mobile Urban Intelligence platform.
 
 | Piece | URL | Host |
 |---|---|---|

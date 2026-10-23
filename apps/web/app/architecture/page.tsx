@@ -28,7 +28,7 @@ export default function ArchitecturePage() {
             Bharat Bus Hardware & Sensor Mounting Exploded View
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-            Interactive 3D model breakdown of sensor mounting positions, edge compute modules, GNSS antennas, and real-time telemetry hardware powering the SIH26124 Urban Intelligence Platform.
+            Interactive 3D model breakdown of sensor mounting positions, edge compute modules, GNSS antennas, and real-time telemetry hardware powering the Mobile Urban Intelligence Platform.
           </p>
         </div>
 

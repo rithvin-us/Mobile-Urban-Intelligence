@@ -25,7 +25,12 @@ import numpy as np
 # Ensure Windows finds Cisco OpenH264 DLL for universal H.264 (avc1) web browser compatibility
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.abspath(os.path.join(_script_dir, ".."))
-for p in [_project_root, os.path.join(_project_root, "apps", "api", "venv", "Scripts"), os.path.dirname(cv2.__file__)]:
+for p in [
+    os.path.join(_script_dir, "vendor"),
+    _project_root,
+    os.path.join(_project_root, "apps", "api", "venv", "Scripts"),
+    os.path.dirname(cv2.__file__),
+]:
     if os.path.isdir(p):
         if p not in os.environ.get("PATH", ""):
             os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
