@@ -13,10 +13,10 @@
     "@deck.gl/core": "^9.0.0",
     "@deck.gl/google-maps": "^9.0.0",
     "@deck.gl/layers": "^9.0.0",
-    "@react-three/drei": "^10.7.8",
-    "@react-three/fiber": "^9.7.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
     "@types/three": "^0.186.0",
-    "@vis.gl/react-google-maps": "^1.5.1",
+    "@vis.gl/react-google-maps": "^1.10.1",
     "clsx": "^2.1.0",
     "lucide-react": "^0.359.0",
     "next": "^14.2.24",
@@ -24,7 +24,7 @@
     "react-dom": "^18.2.0",
     "recharts": "^2.12.3",
     "tailwind-merge": "^2.2.2",
-    "three": "^0.186.0"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/google.maps": "3.66.3",
