@@ -1,5 +1,5 @@
 # Edge AI Dependencies for NVIDIA Jetson / Onboard Edge Node
-ultralytics>=8.1.0
+ultralytics>=8.4.183
 torch>=2.0.0
 opencv-python>=4.8.0
 pillow>=10.0.0
