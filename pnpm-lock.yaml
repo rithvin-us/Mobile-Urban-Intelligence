@@ -57,8 +57,8 @@ importers:
         version: 0.186.0
     devDependencies:
       '@types/google.maps':
-        specifier: 3.66.3
-        version: 3.66.3
+        specifier: 3.66.7
+        version: 3.66.7
       '@types/node':
         specifier: ^20.11.30
         version: 20.19.43
@@ -371,8 +371,8 @@ packages:
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
-  '@types/google.maps@3.66.3':
-    resolution: {integrity: sha512-IH8Pg3eIxDQapkiwZbpMZNTNth4v6bQvyatML9PFnDrOvrttsO/hUgrJSgQgoWmJSYRQq2X9cDZekTQRVGJT6A==}
+  '@types/google.maps@3.66.7':
+    resolution: {integrity: sha512-4EhLRkBtF5TMBAifddMeK+tn5MS6Sa6cMwrg4TbQiPlV4nU9IbKwHJ5csBfnpykNmXwqy+a9y0/38ZezOwtxmg==}
 
   '@types/node@20.19.43':
     resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
@@ -1197,7 +1197,7 @@ snapshots:
       '@luma.gl/core': 9.4.2
       '@luma.gl/webgl': 9.4.2(@luma.gl/core@9.4.2)
       '@math.gl/core': 4.1.0
-      '@types/google.maps': 3.66.3
+      '@types/google.maps': 3.66.7
 
   '@deck.gl/layers@9.4.0(@deck.gl/core@9.4.0(@luma.gl/webgpu@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2))))(@loaders.gl/core@4.5.2)(@luma.gl/core@9.4.2)(@luma.gl/engine@9.4.2(@luma.gl/core@9.4.2)(@luma.gl/shadertools@9.4.2(@luma.gl/core@9.4.2)))':
     dependencies:
@@ -1219,7 +1219,7 @@ snapshots:
 
   '@googlemaps/js-api-loader@2.1.1':
     dependencies:
-      '@types/google.maps': 3.66.3
+      '@types/google.maps': 3.66.7
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -1485,7 +1485,7 @@ snapshots:
 
   '@types/geojson@7946.0.16': {}
 
-  '@types/google.maps@3.66.3': {}
+  '@types/google.maps@3.66.7': {}
 
   '@types/node@20.19.43':
     dependencies:
@@ -1535,7 +1535,7 @@ snapshots:
   '@vis.gl/react-google-maps@1.10.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@googlemaps/js-api-loader': 2.1.1
-      '@types/google.maps': 3.66.3
+      '@types/google.maps': 3.66.7
       fast-equals: 6.0.3
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
